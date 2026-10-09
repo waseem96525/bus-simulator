@@ -301,7 +301,7 @@ class BusAudioEngine{
       const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
       airSrc.buffer=buf;airSrc.loop=true;airSrc.connect(this.airF);this.airF.connect(this.air);this.air.connect(this.master);airSrc.start();
 
-      this.horn=false;
+      this.hornOn=false;
       this.ready=true;
     }catch(e){console.warn('audio',e);}
   }
@@ -338,11 +338,11 @@ class BusAudioEngine{
     const g=this.ctx.createGain();g.gain.value=.35;s.connect(f);f.connect(g);g.connect(this.master);s.start(t);}
   horn(on){
     if(!this.ready)return;
-    if(on&&!this.horn){this.horn=true;this.hg=this.ctx.createGain();this.hg.gain.value=.2;
+    if(on&&!this.hornOn){this.hornOn=true;this.hg=this.ctx.createGain();this.hg.gain.value=.2;
       this.h1=this.ctx.createOscillator();this.h2=this.ctx.createOscillator();
       this.h1.type='sawtooth';this.h2.type='sawtooth';this.h1.frequency.value=277;this.h2.frequency.value=349;
       this.h1.connect(this.hg);this.h2.connect(this.hg);this.hg.connect(this.master);this.h1.start();this.h2.start();}
-    else if(!on&&this.horn){this.horn=false;
+    else if(!on&&this.hornOn){this.hornOn=false;
       try{this.hg.gain.exponentialRampToValueAtTime(.0001,this.ctx.currentTime+.08);
       setTimeout(()=>{this.h1.stop();this.h2.stop();},110);}catch(e){}}
   }
@@ -1638,7 +1638,7 @@ function checkBusSignal(){
    7. GAME STATE
    ========================================================================= */
 const S={
-  speed:0,maxSpeed:78,revMax:20,
+  speed:0,maxSpeed:95,revMax:24,
   steerAngle:0,maxSteer:0.6,
   heading:0,gear:'P',
   doorsOpen:false,doorP:0,
@@ -2379,14 +2379,15 @@ function updateDriving(dt){
   const prev=S.speed;
   const mass=1+onboard.length/CFG.capacity*0.35;
   if(S.gear==='D'){
-    if(throttle)S.speed+=clamp(15/mass,5,16)*dt*(1-S.speed/S.maxSpeed*0.55);
-    else S.speed=Math.max(0,S.speed-4.2*dt);
-    if(braking)S.speed=Math.max(0,S.speed-22*dt);
+    if(throttle)S.speed+=clamp(30/mass,14,30)*dt*(1-S.speed/S.maxSpeed*0.9);
+    else S.speed=Math.max(0,S.speed-3.4*dt);
+    if(S.speed>S.maxSpeed)S.speed=S.maxSpeed;
+    if(braking)S.speed=Math.max(0,S.speed-24*dt);
     if(S.doorsOpen&&S.speed>0)S.speed=Math.max(0,S.speed-30*dt);
   }else if(S.gear==='R'){
-    if(throttle)S.speed=Math.max(-S.revMax,S.speed-11*dt);
-    else S.speed=Math.min(0,S.speed+5*dt);
-    if(braking)S.speed=Math.min(0,S.speed+20*dt);
+    if(throttle)S.speed=Math.max(-S.revMax,S.speed-16*dt);
+    else S.speed=Math.min(0,S.speed+4*dt);
+    if(braking)S.speed=Math.min(0,S.speed+22*dt);
   }else{
     S.speed=Math.max(0,S.speed-9*dt);S.speed=Math.min(0,S.speed+9*dt);
   }
