@@ -7,7 +7,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!manifest\\.json|sw\\.js|.*\\.js|.*\\.json|.*\\.png).*)",
       "destination": "/index.html"
     }
   ]
