@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Metro Transit 3D â€” Bus Driver Simulator</title>
+<title>Metro Transit 3D — Bus Driver Simulator</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
@@ -78,7 +78,7 @@
         <div class="bg-amber-500 text-slate-950 rounded-lg px-2 py-0.5 text-[11px] font-black hud-font">LINE 12</div>
         <div class="leading-tight">
           <div class="text-[9px] uppercase font-bold text-slate-400">Next stop</div>
-          <div id="hudNextStop" class="text-xs sm:text-sm font-black text-amber-400 hud-font truncate">â€”</div>
+          <div id="hudNextStop" class="text-xs sm:text-sm font-black text-amber-400 hud-font truncate">—</div>
         </div>
         <div class="leading-tight">
           <div class="text-[9px] uppercase font-bold text-slate-400">Distance</div>
@@ -94,12 +94,12 @@
 
     <div class="flex flex-col items-end gap-1.5 pointer-events-auto">
       <div class="flex gap-1.5 flex-wrap justify-end">
-        <button id="btnCam" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-white font-bold">ðŸ“· <span id="camName">Chase</span></button>
-        <button id="btnWeather" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold"><span id="weatherIcon">â˜€ï¸</span></button>
-        <button id="btnSteerMode" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-amber-300 font-bold"><span id="steerModeIcon">â˜¸ï¸ Wheel</span></button>
-        <button id="btnAudio" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold"><span id="audioIcon">ðŸ”Š</span></button>
-        <button id="btnManifest" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold">ðŸ“‹</button>
-        <button id="btnEndShift" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-rose-300 font-bold">â¹ Shift</button>
+        <button id="btnCam" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-white font-bold">📷 <span id="camName">Chase</span></button>
+        <button id="btnWeather" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold"><span id="weatherIcon">☀️</span></button>
+        <button id="btnSteerMode" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-amber-300 font-bold"><span id="steerModeIcon">☸️ Wheel</span></button>
+        <button id="btnAudio" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold"><span id="audioIcon">🔊</span></button>
+        <button id="btnManifest" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold">📋</button>
+        <button id="btnEndShift" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-rose-300 font-bold">⏹ Shift</button>
       </div>
       <div class="glass-panel p-1 rounded-xl relative overflow-hidden">
         <canvas id="minimapCanvas" width="150" height="150" style="width:min(150px,26vw);height:min(150px,26vw)" class="rounded-lg bg-slate-950 block"></canvas>
@@ -111,14 +111,14 @@
   <!-- MIDDLE LEFT : PA + lamps -->
   <div class="flex flex-col gap-2 items-start pointer-events-auto mt-2" style="max-width:min(46vw,340px)">
     <div id="paPanel" class="glass-panel rounded-xl px-3 py-2 border-amber-500/30">
-      <div class="text-[9px] font-black text-amber-400 tracking-widest">ðŸ“¢ PA ANNOUNCEMENT</div>
+      <div class="text-[9px] font-black text-amber-400 tracking-widest">📢 PA ANNOUNCEMENT</div>
       <div id="paText" class="text-[11px] sm:text-xs font-semibold text-white mt-0.5 leading-snug">Good morning. Welcome aboard Line 12 City Loop.</div>
     </div>
     <div class="flex gap-2 flex-wrap">
-      <div id="lampStopReq" class="lamp-off rounded-xl px-2.5 py-1.5 text-[10px] font-black border">ðŸ›‘ STOP REQUESTED</div>
-      <div id="lampDoors" class="lamp-off rounded-xl px-2.5 py-1.5 text-[10px] font-black border">ðŸšª DOORS</div>
-      <div id="lampHbrake" class="lamp-red rounded-xl px-2.5 py-1.5 text-[10px] font-black border">ðŸ…¿ï¸ PARKING BRAKE</div>
-      <div id="lampDwell" class="hidden lamp-green rounded-xl px-2.5 py-1.5 text-[10px] font-black border">â± SERVICINGâ€¦</div>
+      <div id="lampStopReq" class="lamp-off rounded-xl px-2.5 py-1.5 text-[10px] font-black border">🛑 STOP REQUESTED</div>
+      <div id="lampDoors" class="lamp-off rounded-xl px-2.5 py-1.5 text-[10px] font-black border">🚪 DOORS</div>
+      <div id="lampHbrake" class="lamp-red rounded-xl px-2.5 py-1.5 text-[10px] font-black border">🅿️ PARKING BRAKE</div>
+      <div id="lampDwell" class="hidden lamp-green rounded-xl px-2.5 py-1.5 text-[10px] font-black border">⏱ SERVICING…</div>
     </div>
     <div id="dwellBar" class="hidden glass-panel rounded-xl px-3 py-2 w-full">
       <div class="flex justify-between text-[10px] font-bold text-slate-300">
@@ -146,12 +146,12 @@
         <div class="absolute top-1 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]"></div>
       </div>
       <div id="buttonSteerContainer" class="flex gap-2">
-        <button id="touchLeftBtn" class="touch-pedal glass-panel w-14 h-12 rounded-xl text-sky-300 text-xl font-black flex items-center justify-center">â—€</button>
-        <button id="touchRightBtn" class="touch-pedal glass-panel w-14 h-12 rounded-xl text-sky-300 text-xl font-black flex items-center justify-center">â–¶</button>
+        <button id="touchLeftBtn" class="touch-pedal glass-panel w-14 h-12 rounded-xl text-sky-300 text-xl font-black flex items-center justify-center">◀</button>
+        <button id="touchRightBtn" class="touch-pedal glass-panel w-14 h-12 rounded-xl text-sky-300 text-xl font-black flex items-center justify-center">▶</button>
       </div>
       <div class="flex gap-1.5">
-        <button id="touchHornBtn" class="btn-action glass-panel px-3 py-1.5 rounded-xl text-amber-400 text-[11px] font-black">ðŸ“¢ HORN</button>
-        <button id="btnStopBell" class="btn-action glass-panel px-3 py-1.5 rounded-xl text-cyan-300 text-[11px] font-black">ðŸ”” STOP BELL</button>
+        <button id="touchHornBtn" class="btn-action glass-panel px-3 py-1.5 rounded-xl text-amber-400 text-[11px] font-black">📢 HORN</button>
+        <button id="btnStopBell" class="btn-action glass-panel px-3 py-1.5 rounded-xl text-cyan-300 text-[11px] font-black">🔔 STOP BELL</button>
       </div>
     </div>
 
@@ -176,8 +176,8 @@
       </div>
 
       <div class="flex gap-1.5 items-center border-l border-slate-700/80 pl-2 sm:pl-3">
-        <button id="btnDoors" class="btn-action glass-panel px-2.5 h-10 rounded-xl flex items-center gap-1 text-[11px] font-bold text-cyan-300 border-cyan-500/30">ðŸšª <span id="doorLabel">DOORS</span></button>
-        <button id="btnHeadlights" class="btn-action glass-panel w-10 h-10 rounded-xl text-yellow-300 text-sm flex items-center justify-center">ðŸ’¡</button>
+        <button id="btnDoors" class="btn-action glass-panel px-2.5 h-10 rounded-xl flex items-center gap-1 text-[11px] font-bold text-cyan-300 border-cyan-500/30">🚪 <span id="doorLabel">DOORS</span></button>
+        <button id="btnHeadlights" class="btn-action glass-panel w-10 h-10 rounded-xl text-yellow-300 text-sm flex items-center justify-center">💡</button>
         <button id="btnHandbrake" class="btn-action glass-panel px-2.5 h-10 rounded-xl text-[11px] font-bold text-rose-400 border border-rose-500/40">(P)</button>
       </div>
 
@@ -224,8 +224,8 @@
 <div id="manifestOverlay" class="hidden absolute inset-0 z-40 bg-slate-950/80 backdrop-blur-sm p-4 pointer-events-auto">
   <div class="glass-panel rounded-2xl max-w-md w-full mx-auto mt-8 p-4 h-[70vh] flex flex-col">
     <div class="flex justify-between items-center mb-2">
-      <div class="hud-font font-black text-white">ðŸ§ PASSENGER MANIFEST</div>
-      <button id="btnCloseManifest" class="btn-action glass-panel px-3 py-1 rounded-lg text-xs font-bold">âœ• CLOSE</button>
+      <div class="hud-font font-black text-white">🧍 PASSENGER MANIFEST</div>
+      <button id="btnCloseManifest" class="btn-action glass-panel px-3 py-1 rounded-lg text-xs font-bold">✕ CLOSE</button>
     </div>
     <div class="text-[10px] text-slate-400 font-bold mb-1">WAITING AT NEXT STOP</div>
     <div id="queueList" class="text-[11px] text-slate-300 mb-3 max-h-24 overflow-y-auto hidescroll"></div>
@@ -237,17 +237,17 @@
 <!-- ======================= START ======================= -->
 <div id="startOverlay" class="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/88 backdrop-blur-md p-4 pointer-events-auto">
   <div class="glass-panel p-6 sm:p-7 rounded-3xl max-w-md w-full text-center flex flex-col items-center border border-emerald-500/30 shadow-[0_0_50px_rgba(16,185,129,0.18)]">
-    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-3xl mb-3 shadow-lg shadow-emerald-500/30">ðŸšŒ</div>
-    <h1 class="hud-font text-2xl sm:text-3xl font-black text-white mb-1 tracking-wide">LINE 12 Â· CITY LOOP</h1>
+    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-3xl mb-3 shadow-lg shadow-emerald-500/30">🚌</div>
+    <h1 class="hud-font text-2xl sm:text-3xl font-black text-white mb-1 tracking-wide">LINE 12 · CITY LOOP</h1>
     <p class="text-xs text-slate-300 mb-5">Drive the 8-stop loop. Stop at the kerb, open the doors, board waiting passengers and drop them off at their stops.</p>
     <div class="bg-slate-900/80 rounded-xl p-3 w-full text-left mb-5 border border-slate-800 text-[11px] text-slate-300 space-y-1">
-      <div>ðŸŽ® <b>W/S</b> (or â†‘â†“) gas &amp; brake Â· <b>A/D</b> (or â†â†’) steer Â· <b>Space</b> parking brake Â· <b>E</b> doors</div>
-      <div>ðŸ”” <b>B</b> stop-request bell Â· <b>C</b> camera Â· <b>H</b> horn Â· <b>M</b> manifest</div>
-      <div>ðŸ“± Drag the wheel, use â—€â–¶ buttons, or hold the on-screen pedals.</div>
-      <div>âš ï¸ Speed limit 50 km/h. Hard braking, collisions and red lights cost you money.</div>
-      <div>ðŸ’¡ Press <b>C</b> for the cabin view to watch passengers board and sit down.</div>
+      <div>🎮 <b>W/S</b> (or ↑↓) gas &amp; brake · <b>A/D</b> (or ←→) steer · <b>Space</b> parking brake · <b>E</b> doors</div>
+      <div>🔔 <b>B</b> stop-request bell · <b>C</b> camera · <b>H</b> horn · <b>M</b> manifest</div>
+      <div>📱 Drag the wheel, use ◀▶ buttons, or hold the on-screen pedals.</div>
+      <div>⚠️ Speed limit 50 km/h. Hard braking, collisions and red lights cost you money.</div>
+      <div>💡 Press <b>C</b> for the cabin view to watch passengers board and sit down.</div>
     </div>
-    <button id="btnStartGame" class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-base hud-font tracking-wider shadow-xl active:scale-95 transition-transform">BEGIN SHIFT (07:00 â€“ 19:00)</button>
+    <button id="btnStartGame" class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-base hud-font tracking-wider shadow-xl active:scale-95 transition-transform">BEGIN SHIFT (07:00 – 19:00)</button>
   </div>
 </div>
 
@@ -456,12 +456,15 @@ function applyTimeOfDay(force){
   const k=skyAt(hour);
   drawSky('#'+k.top.toString(16).padStart(6,'0'),'#'+k.bot.toString(16).padStart(6,'0'));
   const horizon=k.bot;
+  
+  // Enhanced fog with weather effects
   if(raining){
     scene.background.setHex(0x0b1220);
     scene.fog.color.setHex(0x141d29);
     scene.fog.density=0.0062;
     sunLight.intensity=0.09;sunLight.color.setHex(0x9fb3c8);
     hemi.intensity=0.26;
+    fillLight.intensity=0.15;fillLight.color.setHex(0x2a3a4a);
     S.dark=1;
   }else{
     scene.background.setHex(horizon);
@@ -470,6 +473,7 @@ function applyTimeOfDay(force){
     sunLight.intensity=k.sun;
     sunLight.color.setHex(k.sun<0.6?0xffb877:0xfff6e5);
     hemi.intensity=k.amb;
+    fillLight.intensity=k.amb*0.3;
     S.dark=k.dark;
   }
   // sun / moon travels across the sky
@@ -479,6 +483,14 @@ function applyTimeOfDay(force){
   sunDisc.position.set(xz*560,Math.max(30,y*560),-320);
   sunDisc.material.color.setHex(raining?0x8ea3b8:(y>0.08?0xfff3c4:0xdfe8ff));
   sunDisc.visible=y>0.02||raining;
+  
+  // Dynamic fog density based on time of day
+  if(k.dark&&!raining){
+    scene.fog.density=0.0045;
+  }else if(!k.dark&&raining){
+    scene.fog.density=0.0042;
+  }
+  
   applyNightLook(!!S.dark,raining);
 }
 
@@ -491,6 +503,84 @@ const SD=300;
 sunLight.shadow.camera.left=-SD;sunLight.shadow.camera.right=SD;sunLight.shadow.camera.top=SD;sunLight.shadow.camera.bottom=-SD;
 sunLight.shadow.bias=-0.0009;
 scene.add(sunLight);
+
+// Ambient fill light for better shadow detail
+const fillLight=new THREE.HemisphereLight(0xaaccee,0x3a4a5a,0.35);
+scene.add(fillLight);
+
+// Cloud layer for atmospheric depth
+const cloudCanvas=document.createElement('canvas');
+cloudCanvas.width=128;cloudCanvas.height=128;
+const cloudCtx=cloudCanvas.getContext('2d');
+cloudCtx.fillStyle='#ffffff';
+for(let i=0;i<150;i++){
+  const x=Math.random()*128,y=Math.random()*128,r=2+Math.random()*12,a=0.2+Math.random()*0.5;
+  cloudCtx.fillStyle=`rgba(255,255,255,${a})`;
+  cloudCtx.beginPath();cloudCtx.arc(x,y,r,0,6.3);cloudCtx.fill();
+}
+const cloudTex=new THREE.CanvasTexture(cloudCanvas);
+cloudTex.wrapS=THREE.RepeatWrapping;cloudTex.wrapT=THREE.RepeatWrapping;
+const cloudMat=new THREE.MeshBasicMaterial({map:cloudTex,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false});
+const cloudLayer=new THREE.Mesh(new THREE.PlaneGeometry(600,600),cloudMat);
+cloudLayer.rotation.x=-0.3;cloudLayer.position.y=180;
+scene.add(cloudLayer);
+
+/* ---------- atmospheric effects ---------- */
+// High-altitude floating particles for depth
+const atmoParticles=(function(){
+  const N=150;
+  const pos=new Float32Array(N*3);
+  const siz=new Float32Array(N);
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-0.5)*500;
+    pos[i*3+1]=Math.random()*40+15;
+    pos[i*3+2]=(Math.random()-0.5)*500;
+    siz[i]=0.5+Math.random()*1.5;
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setAttribute('size',new THREE.BufferAttribute(siz,1));
+  const m=new THREE.ShaderMaterial({
+    transparent:true,
+    depthWrite:false,
+    blending:THREE.AdditiveBlending,
+    vertexShader:'attribute float size;varying float sizeV;void main(){sizeV=size;vec4 mvPosition=modelViewMatrix*vec4(position,1.0);gl_PointSize=size*(300.0-position.z/50.0);gl_Position=projectionMatrix*mvPosition;}',
+    fragmentShader:'varying float sizeV;void main(){float d=distance(gl_PointCoord-0.5,0.5);if(d>0.5)discard;gl_FragColor=vec4(0.9,0.9,1.0,0.3-sizeV*0.1);}'
+  });
+  const p=new THREE.Points(g,m);
+  p.visible=false;
+  scene.add(p);
+  return p;
+})();
+
+// Animated birds silhouette
+const birds=(function(){
+  const flocks=[];
+  for(let i=0;i<12;i++){
+    const flock=new THREE.Group();
+    const body=new THREE.Mesh(
+      new THREE.SphereGeometry(0.6,8,6),
+      new THREE.MeshBasicMaterial({color:0x555555,transparent:true,opacity:.9})
+    );
+    flock.add(body);
+    const wingL=new THREE.Mesh(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-0.7,-0.3,0),
+        new THREE.Vector3(0,0.2,0),
+        new THREE.Vector3(-0.4,0.3,0)
+      ]),
+      new THREE.MeshBasicMaterial({color:0x444444})
+    );
+    flock.add(wingL);
+    const wingR=wingL.clone();flock.add(wingR);
+    flock.initPos={x:(Math.random()-0.5)*400, z:(Math.random()-0.5)*400};
+    flock.speed=0.5+Math.random()*0.5;
+    flock.phase=Math.random()*Math.PI*2;
+    flock.altitude=20+Math.random()*15;
+    flocks.push(flock);
+  }
+  scene.add(new THREE.Group().add(...flocks));
+})();
 
 /* =========================================================================
    3. CITY
@@ -677,7 +767,7 @@ function signTexture(stop){
     const nm=stop.name.length>16?stop.name.slice(0,16):stop.name;
     g.fillText(nm,w/2,64);
     g.fillStyle='#475569';g.font='16px Arial';
-    g.fillText(stop.code+' â€¢ CITY LOOP',w/2,88);
+    g.fillText(stop.code+' • CITY LOOP',w/2,88);
     g.fillStyle='#dc2626';g.font='bold 15px Arial';g.fillText('BUS STOP',w/2,112);
   },256,128);
 }
@@ -761,7 +851,7 @@ stops.forEach(stop=>{
     c2.fillStyle=gr;c2.fillRect(0,0,w,h);
     c2.fillStyle='#fff';c2.font='bold 44px Arial';c2.textAlign='center';
     c2.fillText('RIDE THE LOOP',w/2,90);
-    c2.font='26px Arial';c2.fillText('8 stops Â· 24 hours',w/2,140);
+    c2.font='26px Arial';c2.fillText('8 stops · 24 hours',w/2,140);
   },512,200);
   const adPanel=new THREE.Mesh(new THREE.PlaneGeometry(5.4,1.6),
     new THREE.MeshBasicMaterial({map:adTex}));
@@ -960,10 +1050,10 @@ const PAXGEO={
   leg:new THREE.BoxGeometry(0.26,0.66,0.17),
   arm:new THREE.BoxGeometry(0.09,0.5,0.09)
 };
-const SKINS=[0xf8d0b0,0xe5ac69,0xc68642,0x8d5524,0xffd9ac].map(c=>new THREE.MeshLambertMaterial({color:c}));
-const SHIRTS=[0xef4444,0x3b82f6,0x22c55e,0xf59e0b,0xa855f7,0xec4899,0x14b8a6,0xe2e8f0,0x64748b,0xf97316].map(c=>new THREE.MeshLambertMaterial({color:c}));
+const SKINS=[0xf8d0b0,0xe5ac69,0xc68642,0x8d5524,0xffd9ac,0x4a3524].map(c=>new THREE.MeshLambertMaterial({color:c}));
+const SHIRTS=[0xef4444,0x3b82f6,0x22c55e,0xf59e0b,0xa855f7,0xec4899,0x14b8a6,0xe2e8f0,0x64748b,0xf97316,0x4f46ce,0x059669,0xdc2626,0x2563eb,0x0d9488].map(c=>new THREE.MeshLambertMaterial({color:c}));
 const PANTS=new THREE.MeshLambertMaterial({color:0x27324a});
-const HAIRS=[0x1f2937,0x4b3720,0x8b5a2b,0x111827,0x6b7280].map(c=>new THREE.MeshLambertMaterial({color:c}));
+const HAIRS=[0x1f2937,0x4b3720,0x8b5a2b,0x111827,0x6b7280,0xf59e0b,0xef4444,0x1e3a8a].map(c=>new THREE.MeshLambertMaterial({color:c}));
 
 function makePerson(opts){
   opts=opts||{};
@@ -987,7 +1077,23 @@ function animatePerson(p,t,moving){
   const s=moving?0.65:0.06;
   p.legL.rotation.x=Math.sin(p.phase)*s;p.legR.rotation.x=-Math.sin(p.phase)*s;
   p.armL.rotation.x=-Math.sin(p.phase)*s*0.8;p.armR.rotation.x=Math.sin(p.phase)*s*0.8;
-  if(!moving)p.group.position.y=(p.baseY||0)+Math.sin(p.phase*0.5)*0.015;
+  if(!moving){
+    p.group.position.y=(p.baseY||0)+Math.sin(p.phase*0.5)*0.015;
+    p.group.rotation.y+=Math.sin(p.phase*0.3)*0.002;
+  }else{
+    const bob=Math.sin(p.phase*2)*0.02;
+    p.group.position.y=(p.baseY||0)+bob;
+    const lean=Math.sin(p.phase)*0.08;
+    p.group.rotation.z=lean;
+    p.torsoLean=(p.torsoLean||0);
+    if(p.torsoLean!==undefined){
+      p.group.children.forEach(c=>{
+        if(c.geometry && c.geometry.type==='CylinderGeometry' && c.position.y>0.8 && c.position.y<1.3){
+          c.rotation.x=-lean*0.5;
+        }
+      });
+    }
+  }
 }
 const driver=makePerson({shirt:SHIRTS[0],scale:0.95});
 driver.group.position.set(-0.72,1.04,L/2-1.6);
@@ -1011,8 +1117,28 @@ const rubber=new THREE.MeshStandardMaterial({color:0x111827,roughness:.95});
 const hubMat=new THREE.MeshStandardMaterial({color:0x94a3b8,metalness:.65,roughness:.35});
 function wheelMesh(r,w){
   const g=new THREE.Group();
-  const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,w,22),rubber);t.rotation.z=Math.PI/2;t.castShadow=true;g.add(t);
-  const h=new THREE.Mesh(new THREE.CylinderGeometry(r*0.55,r*0.55,w+0.03,12),hubMat);h.rotation.z=Math.PI/2;g.add(h);
+  const tireGeo=new THREE.CylinderGeometry(r,r,w,22);
+  const tireMat=new THREE.MeshStandardMaterial({color:0x111827,roughness:.95});
+  const tire=new THREE.Mesh(tireGeo,tireMat);tire.rotation.z=Math.PI/2;tire.castShadow=true;g.add(tire);
+  
+  // Enhanced rim with better geometry
+  const rimGeo=new THREE.CylinderGeometry(r*0.55,r*0.55,w+0.05,16);
+  const rimMat=new THREE.MeshStandardMaterial({color:0x94a3b8,metalness:.75,roughness:.3});
+  const rim=new THREE.Mesh(rimGeo,rimMat);rim.rotation.z=Math.PI/2;g.add(rim);
+  
+  // Enhanced spokes visualization
+  const spokeGeo=new THREE.BoxGeometry(0.04,1.2,0.03);
+  const spokeMat=new THREE.MeshStandardMaterial({color:0x94a3b8,metalness:.9});
+  const spokes=[[-1,-0.4,0.8],[-0.6,0.2,-0.8],[-0.2,-0.6,0.5],[0.3,0.4,-0.5]];
+  spokes.forEach(([x,y,z])=>{
+    const s=new THREE.Mesh(spokeGeo,spokeMat);s.position.set(x,y,z);s.rotation.z=Math.atan2(y,z);g.add(s);
+  });
+  
+  // Enhanced tire rim center cap
+  const capGeo=new THREE.CylinderGeometry(r*0.3,0.05,0.04,8);
+  const capMat=new THREE.MeshStandardMaterial({color:0x64748b,metalness:.8});
+  const cap=new THREE.Mesh(capGeo,capMat);cap.position.set(0,0.3,0);g.add(cap);
+  
   return g;
 }
 const steerPivots=[],spinWheels=[];
@@ -1131,9 +1257,9 @@ const decalTex=makeCanvasTex((g,w,h)=>{
   g.fillStyle='#e0f2fe';g.font='bold 66px Arial';g.textAlign='center';
   g.fillText('CITY TRANSIT',w/2,90);
   g.fillStyle='#fbbf24';g.font='bold 44px Arial';
-  g.fillText('LINE 12 Â· 7742',w/2,150);
+  g.fillText('LINE 12 · 7742',w/2,150);
   g.fillStyle='#94a3b8';g.font='30px Arial';
-  g.fillText('LOW FLOOR Â· STEP-FREE',w/2,200);
+  g.fillText('LOW FLOOR · STEP-FREE',w/2,200);
 },512,256);
 [-1,1].forEach(s=>{
   const dec=new THREE.Mesh(new THREE.PlaneGeometry(4.6,2.3),
@@ -1273,16 +1399,18 @@ function extrude(shape,depth,bevel){
 
 /* --- vehicle catalogue: real-ish proportions, several body types --- */
 const VEH={
-  sedan :{L:4.55,W:1.82,bodyH:.62,cab:{l:2.15,h:.60,f:.72,r:.95},roof:1.46,wr:.33,wbase:2.75,wt:34},
-  hatch :{L:4.05,W:1.78,bodyH:.66,cab:{l:2.45,h:.62,f:.55,r:.28},roof:1.50,wr:.31,wbase:2.50,wt:20},
-  suv   :{L:4.75,W:1.94,bodyH:.82,cab:{l:2.90,h:.78,f:.40,r:.22},roof:1.82,wr:.38,wbase:2.80,wt:14},
-  van   :{L:5.10,W:2.00,bodyH:1.35,cab:{l:3.60,h:.72,f:.18,r:.10},roof:2.32,wr:.36,wbase:3.10,wt:10},
-  pickup:{L:5.30,W:1.96,bodyH:.92,cab:{l:1.70,h:.62,f:.42,r:.30},roof:1.72,wr:.40,wbase:3.20,wt:8},
-  taxi  :{L:4.55,W:1.82,bodyH:.62,cab:{l:2.15,h:.60,f:.72,r:.95},roof:1.46,wr:.33,wbase:2.75,wt:8},
-  police:{L:4.70,W:1.88,bodyH:.66,cab:{l:2.25,h:.60,f:.72,r:.95},roof:1.50,wr:.34,wbase:2.80,wt:4},
-  bus   :{L:11.0,W:2.55,bodyH:2.95,cab:null,roof:3.30,wr:.52,wbase:6.20,wt:6}
-};
-const CAR_COLORS=[0x1f2937,0x94a3b8,0x0f172a,0xb91c1c,0x1d4ed8,0x166534,0xe5e7eb,0x7c2d12,0x3f3f46,0x0891b2,0x4d7c0f,0x9d174d];
+    sedan :{L:4.55,W:1.82,bodyH:.62,cab:{l:2.15,h:.60,f:.72,r:.95},roof:1.46,wr:.33,wbase:2.75,wt:34},
+    hatch :{L:4.05,W:1.78,bodyH:.66,cab:{l:2.45,h:.62,f:.55,r:.28},roof:1.50,wr:.31,wbase:2.50,wt:20},
+    suv   :{L:4.75,W:1.94,bodyH:.82,cab:{l:2.90,h:.78,f:.40,r:.22},roof:1.82,wr:.38,wbase:2.80,wt:14},
+    van   :{L:5.10,W:2.00,bodyH:1.35,cab:{l:3.60,h:.72,f:.18,r:.10},roof:2.32,wr:.36,wbase:3.10,wt:10},
+    pickup:{L:5.30,W:1.96,bodyH:.92,cab:{l:1.70,h:.62,f:.42,r:.30},roof:1.72,wr:.40,wbase:3.20,wt:8},
+    taxi  :{L:4.55,W:1.82,bodyH:.62,cab:{l:2.15,h:.60,f:.72,r:.95},roof:1.46,wr:.33,wbase:2.75,wt:8},
+    police:{L:4.70,W:1.88,bodyH:.66,cab:{l:2.25,h:.60,f:.72,r:.95},roof:1.50,wr:.34,wbase:2.80,wt:4},
+    bus   :{L:11.0,W:2.55,bodyH:2.95,cab:null,roof:3.30,wr:.52,wbase:6.20,wt:6},
+    truck :{L:6.8,W:2.4,bodyH:1.8,cab:{l:2.5,h:1.0,f:.6,r:.4},roof:2.0,wr:.45,wbase:3.8,wt:6},
+    coupe :{L:4.3,W:1.75,bodyH:.58,cab:{l:1.8,h:.55,f:.8,r:.5},roof:1.35,wr:.28,wbase:2.6,wt:30}
+  };
+const CAR_COLORS=[0x1f2937,0x94a3b8,0x0f172a,0xb91c1c,0x1d4ed8,0x166534,0xe5e7eb,0x7c2d12,0x3f3f46,0x0891b2,0x4d7c0f,0x9d174d,0xdc2626,0x16a34a,0xfbbf24,0x3b82f6,0xa855f7,0xd946ef,0x14b8a6,0xf97316];
 
 function pickVehicleType(){
   let tot=0;for(const k in VEH)tot+=VEH[k].wt;
@@ -1484,7 +1612,14 @@ function newCar(startNode,dirH,type){
   const u=car.userData.veh;
   car.userData={
     veh:u,pts:[],cruise:9+Math.random()*8,speed:0,
-    turnSig:0,sigT:0,brake:false,stuck:0,ignoreUntil:0,lastNode:null
+    turnSig:0,sigT:0,brake:false,stuck:0,ignoreUntil:0,lastNode:null,
+    // Enhanced AI behaviors
+    followDist:Math.random()*6+6, // 6-12 units following distance
+    laneChangeProbability:Math.random()*0.005,
+    avoidTimer:0, // to avoid hazards
+    avoidanceForce:0,
+    // personal preferences
+    favoriteNode:startNode
   };
   // build a path of waypoints ahead
   let node=startNode,h=dirH;
@@ -1578,8 +1713,9 @@ function updateTraffic(dt,night){
     }
     if(night)target=Math.min(target,13);
 
-    u.brake=target<u.speed-0.4;
-    u.speed+=clamp(target-u.speed,-9*dt,4.5*dt);
+u.brake=target<u.speed-0.4;
+  const accelFactor = u.speed<5?3:(u.speed<15?2:1);
+  u.speed+=clamp(target-u.speed,-9*dt*accelFactor,4.5*dt*accelFactor);
     u.speed=Math.max(0,u.speed);
     if(u.speed<0.4)u.stuck+=dt;else u.stuck=0;
     if(u.stuck>9){u.ignoreUntil=u.stuck+6;u.stuck=0;}
@@ -1591,7 +1727,17 @@ function updateTraffic(dt,night){
     const wr=c.userData.veh.wr;
     c.userData.veh.wheels.forEach((w,i)=>{
       w.rotation.x+=u.speed*dt/wr;
-      if(i<2)w.rotation.y=clamp(angDiff(targetYaw,c.rotation.y)*1.4,-0.5,0.5);
+      if(i<2){
+        w.rotation.y=clamp(angDiff(targetYaw,c.rotation.y)*1.4,-0.5,0.5);
+        // Add steering wheel rotation to match car direction
+        const steeringAmount = angDiff(targetYaw,c.rotation.y)*0.7;
+        w.rotation.z=steeringAmount*0.1; // slight steering wheel turn
+      }
+      // Suspension simulation - slight bounce based on speed and road imperfections
+      const suspensionFreq = Math.abs(u.speed) * 0.3;
+      const suspensionAmt = Math.sin(w.rotation.x * suspensionFreq) * 0.01 * (1 + Math.random() * 0.2);
+      if(i===0||i===1) w.position.y=0.58+suspensionAmt; // front wheels
+      if(i===2||i===3) w.position.y=0.58+suspensionAmt*0.7; // rear wheels
     });
     // lights
     const lm=c.userData.veh.lamps;
@@ -1625,12 +1771,12 @@ function checkBusSignal(){
   if(!found)return;
   if(!S.redWarn&&bestD<30){
     S.redWarn=true;
-    announce('Red light ahead â€” ease off and stop at the junction.');
+    announce('Red light ahead — ease off and stop at the junction.');
   }
   if(bestD<5.5&&Math.abs(S.speed)>12&&performance.now()-lastRedRun>3000){
     lastRedRun=performance.now();
     S.fines+=15;S.comfort=clamp(S.comfort-5,0,100);
-    audio.airBrake();toast('ðŸš¦ Red light violation â€” fine $15');
+    audio.airBrake();toast('🚦 Red light violation — fine $15');
   }
 }
 
@@ -1811,10 +1957,10 @@ $('btnWeather').addEventListener('click',cycleWeather);
 $('btnSteerMode').addEventListener('click',()=>{
   S.steerMode=S.steerMode==='wheel'?'buttons':'wheel';
   $('wheelContainer').classList.toggle('hidden',S.steerMode!=='wheel');
-  $('steerModeIcon').textContent=S.steerMode==='wheel'?'â˜¸ï¸ Wheel':'â—€â–¶ Buttons';
-  toast(S.steerMode==='wheel'?'Steering wheel shown (A/D still work)':'Wheel hidden â€” use â—€â–¶ or A/D',1400);
+  $('steerModeIcon').textContent=S.steerMode==='wheel'?'☸️ Wheel':'◀▶ Buttons';
+  toast(S.steerMode==='wheel'?'Steering wheel shown (A/D still work)':'Wheel hidden — use ◀▶ or A/D',1400);
 });
-$('btnAudio').addEventListener('click',()=>{$('audioIcon').textContent=audio.toggle()?'ðŸ”‡':'ðŸ”Š';});
+$('btnAudio').addEventListener('click',()=>{$('audioIcon').textContent=audio.toggle()?'🔇':'🔊';});
 $('btnStopBell').addEventListener('click',stopBell);
 $('btnManifest').addEventListener('click',toggleManifest);
 $('btnCloseManifest').addEventListener('click',toggleManifest);
@@ -1837,15 +1983,15 @@ function toggleHandbrake(){
   toast(S.handbrake?'Parking brake SET':'Parking brake RELEASED',1200);
 }
 function toggleDoors(){
-  if(Math.abs(S.speed)>1.2){toast('âš ï¸ Cannot open doors while the bus is moving');audio.beep();return;}
+  if(Math.abs(S.speed)>1.2){toast('⚠️ Cannot open doors while the bus is moving');audio.beep();return;}
   S.doorsOpen=!S.doorsOpen;audio.doors(S.doorsOpen);
   ui.doorLabel.textContent=S.doorsOpen?'OPEN':'CLOSED';
   if(S.doorsOpen){
-    toast(S.dwellStop>=0||atTargetBay()?'Doors open â€” servicing passengers':'Doors open (passengers can only board at a stop)');
+    toast(S.dwellStop>=0||atTargetBay()?'Doors open — servicing passengers':'Doors open (passengers can only board at a stop)');
     if(atTargetBay())beginDwell(S.targetStop);
   }else{
     toast('Doors closed',1200);
-    if(S.dwelling)cancelDwell('Doors closed â€” service cancelled, stay at the stop');
+    if(S.dwelling)cancelDwell('Doors closed — service cancelled, stay at the stop');
   }
 }
 /* the horn: scatters pedestrians and clears broken-down vehicles */
@@ -1855,9 +2001,9 @@ function soundHorn(on){
   const n=scatterPedestrians();
   if(hazardCar){
     const d=hazardCar.mesh.position.distanceTo(bus.position);
-    if(d<38){hazardCar.honked=(hazardCar.honked||0)+1;hazardCar.honkedAt=hazardCar.t;toast('ðŸ“¢ Horn sounded â€” asking the driver to move',1400);}
+    if(d<38){hazardCar.honked=(hazardCar.honked||0)+1;hazardCar.honkedAt=hazardCar.t;toast('📢 Horn sounded — asking the driver to move',1400);}
   }
-  if(n>0)toast('ðŸ“¢ '+n+' pedestrian'+(n>1?'s':'')+' stepped aside',1100);
+  if(n>0)toast('📢 '+n+' pedestrian'+(n>1?'s':'')+' stepped aside',1100);
 }
 function stopBell(){
   if(!S.shiftRunning)return;
@@ -1868,7 +2014,7 @@ function setHeadlights(on){
   beamL.intensity=on?3.2:0;beamR.intensity=on?3.2:0;
   hlL.material.color.setHex(on?0xfffbeb:0x8a8f7a);
   hlR.material.color.copy(hlL.material.color);
-  if(!on&&S.dark){toast('Headlights OFF (night driving â€” keep them on!)');}
+  if(!on&&S.dark){toast('Headlights OFF (night driving — keep them on!)');}
 }
 const CAM_NAMES=['Chase','Cabin','Kerb','Wide'];
 function cycleCamera(){
@@ -1880,23 +2026,23 @@ function cycleWeather(){
   S.weather=(S.weather+1)%2;
   if(S.weather===1){
     rain.visible=true;wetRoad();
-    announce('Rain has set in. Visibility is low â€” ease off the throttle.');
-    toast('ðŸŒ§ï¸ Rain â€” wipers on, road wet',2000);
+    announce('Rain has set in. Visibility is low — ease off the throttle.');
+    toast('🌧️ Rain — wipers on, road wet',2000);
   }else{
     rain.visible=false;dryRoad();
     announce('Weather improving. Clear roads ahead.');
-    toast('â˜€ï¸ Conditions improving',1800);
+    toast('☀️ Conditions improving',1800);
   }
   lastSkyHour=-99;applyTimeOfDay(true);
   ui.weatherIcon.textContent=weatherIcon();
 }
 function weatherIcon(){
-  if(S.weather===1)return 'ðŸŒ§ï¸';
+  if(S.weather===1)return '🌧️';
   const h=S.shiftMin/60;
-  if(S.dark)return 'ðŸŒ™';
-  if(h<9)return 'ðŸŒ…';
-  if(h>16.5)return 'ðŸŒ‡';
-return 'â˜€ï¸';
+  if(S.dark)return '🌙';
+  if(h<9)return '🌅';
+  if(h>16.5)return '🌇';
+return '☀️';
 }
 /* lighting state shared by lamps, cabin and road */
 function applyNightLook(night,raining){
@@ -1922,11 +2068,24 @@ function dryRoad(){
 
 /* rain */
 const rain=(function(){
-  const N=1400,pos=new Float32Array(N*3);
-  for(let i=0;i<N;i++){pos[i*3]=(Math.random()-0.5)*160;pos[i*3+1]=Math.random()*45;pos[i*3+2]=(Math.random()-0.5)*160;}
+  const N=1800;
+  const pos=new Float32Array(N*3);
+  const dirs=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-0.5)*180;
+    pos[i*3+1]=Math.random()*60;
+    pos[i*3+2]=(Math.random()-0.5)*180;
+    dirs[i*3]=Math.random()*2-1;
+    dirs[i*3+1]=-0.5-Math.random()*0.3;
+    dirs[i*3+2]=Math.random()*2-1;
+  }
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  const m=new THREE.PointsMaterial({color:0xaaccee,size:0.35,transparent:true,opacity:.55});
-  const p=new THREE.Points(g,m);p.visible=false;scene.add(p);return p;
+  const m=new THREE.PointsMaterial({color:0xaaccee,size:0.28,transparent:true,opacity:.6});
+  const p=new THREE.Points(g,m);p.visible=false;scene.add(p);
+  
+  // wind variation for more natural rain movement
+  p.windT=0;
+  return p;
 })();
 
 /* =========================================================================
@@ -1970,7 +2129,7 @@ function clearHazard(){
   hazardCar.mesh.userData.veh.lamps.head.color.setHex(0xff2a2a);
   scene.remove(hazardCar.mesh);
   hazardCar=null;
-  toast('âœ… Driver moved the vehicle â€” lane clear',1800);
+  toast('✅ Driver moved the vehicle — lane clear',1800);
 }
 function updateIncidents(dt){
   if(!S.shiftRunning)return;
@@ -2015,7 +2174,7 @@ function beginDwell(idx){
   S.dwellTotal=S.alightQueue.length+S.dwellQueue.length;
   ui.lampDwell.classList.remove('hidden');
   ui.dwellBar.classList.remove('hidden');
-  ui.dwellTitle.textContent='SERVICING Â· '+stop.name;
+  ui.dwellTitle.textContent='SERVICING · '+stop.name;
   ui.dwellFill.style.width='0%';
   if(S.dwellTotal===0)finishDwell();
   else if(S.alightQueue.length) announce('Alighting passengers, please move to the door.');
@@ -2039,12 +2198,12 @@ function finishDwell(forced){
   stop.servedCount++;stop.visited=true;
   const onTime=!forced&&S.dwellT<=12+(S.dwellTotal||0)*3.4;
   if(onTime){S.punctualStops=(S.punctualStops||0)+1;}
-  else {toast('â± Long dwell time â€” passengers are complaining (-$4)');S.fines+=4;}
+  else {toast('⏱ Long dwell time — passengers are complaining (-$4)');S.fines+=4;}
   S.targetStop=(S.targetStop+1)%N_STOPS;
   S.docked=-1;S.annA=false;S.annB=false;
   const nxt=stops[S.targetStop];
   announce('This stop is '+stop.name+'. Next stop: '+nxt.name+'. Thank you for riding Line 12.');
-  toast('âœ“ '+stop.name+' complete â€” next: '+nxt.name,2600);
+  toast('✓ '+stop.name+' complete — next: '+nxt.name,2600);
   if(S.doorsOpen){toast('Close the doors (E) before driving',1800);}
 }
 /* ---- passenger movement inside the cabin ---- */
@@ -2107,7 +2266,7 @@ function exitBus(p,stop){
   S.moodSum+=(p.mood||1);S.moodCount++;
   if(S.dwelling)S.dwellDone++;
   audio.blip(1180,.07,'sine',.05);
-  if(tip>0&&Math.random()<0.35)toast('ðŸ™‚ Happy passenger tipped +'+fmtMoney(p.fare*tip),1200);
+  if(tip>0&&Math.random()<0.35)toast('🙂 Happy passenger tipped +'+fmtMoney(p.fare*tip),1200);
 }
 function updateBusWalkers(dt){
   for(let i=onboard.length-1;i>=0;i--){
@@ -2121,6 +2280,11 @@ function updateBusWalkers(dt){
       d.x+=dx/dist*sp;d.y+=dy/dist*sp;d.z+=dz/dist*sp;
       p.mesh.group.rotation.y=Math.atan2(dx,dz);
       animatePerson(p.mesh,dt,true);
+      if(!p.sitting){
+        const sway=Math.sin(p.phase*3)*0.02;
+        d.x+=sway*Math.sin(p.phase);
+        d.z+=sway*Math.cos(p.phase)*0.5;
+      }
     }else{
       w.pts.shift();
       if(!w.pts.length){const done=w.done;p.walk=null;if(done)done();}
@@ -2191,7 +2355,18 @@ function updatePassengers(dt){
       case 2:w.group.position.x-=w.speed*dt;w.group.rotation.y=-Math.PI/2;if(w.group.position.x<A+2){w.corner=3;}break;
       case 3:w.group.position.z+=w.speed*dt;w.group.rotation.y=Math.PI;if(w.group.position.z>B-2){w.corner=0;}break;
     }
+    // subtle idle animation while standing/walking
     animatePerson(w,dt,true);
+    if(w.idleT)w.idleT-=dt;
+    else{w.idleT=0.5;
+      // occasional subtle shift or arm swing variation
+      w.idleShift=(w.idleShift||0)+dt*0.2;
+      if(w.idleShift>0.8){
+        w.idleShift=0;
+        w.group.position.x+=Math.random()*0.1-0.05;
+        w.group.position.z+=Math.random()*0.1-0.05;
+      }
+    }
   });
 
   doorFrame.getWorldPosition(doorWorld);
@@ -2230,7 +2405,7 @@ function updatePassengers(dt){
     }
 if(onboard.length>=CFG.capacity&&S.dwellQueue.length){
     const lost=S.dwellQueue.length;
-    toast('âš ï¸ Bus full â€” '+lost+' passenger'+(lost>1?'s':'')+' gave up and left',2000);
+    toast('⚠️ Bus full — '+lost+' passenger'+(lost>1?'s':'')+' gave up and left',2000);
     S.gaveUp+=lost;
     S.comfort=clamp(S.comfort-lost*1.5,0,100);
     S.dwellDone+=lost;
@@ -2322,7 +2497,7 @@ function checkCollisions(dt){
     bus.position.x+=nx/n*0.55;bus.position.z+=nz/n*0.55;
     S.speed*=-0.12;
     S.fines+=25;S.comfort=clamp(S.comfort-12,0,100);
-    audio.crash();toast('ðŸ’¥ Collision! Fine $25 â€” comfort down');
+    audio.crash();toast('💥 Collision! Fine $25 — comfort down');
   }
   return hit;
 }
@@ -2398,7 +2573,7 @@ function updateDriving(dt){
   if(decel>19&&Math.abs(prev)>30&&performance.now()-S.harshT>2600){
     S.harshT=performance.now();
     S.fines+=5;S.comfort=clamp(S.comfort-6,0,100);
-    toast('âš ï¸ Harsh braking! Passengers were thrown (-$5)');
+    toast('⚠️ Harsh braking! Passengers were thrown (-$5)');
     audio.airBrake();
   }
   // speeding
@@ -2419,11 +2594,23 @@ function updateDriving(dt){
     const roll=(v*dt)/0.58;
     spinWheels.forEach(w=>w.rotation.x+=roll);
   }
-  // chassis
-  const targetRoll=-S.steerAngle*(S.speed/S.maxSpeed)*0.09;
-  const targetPitch=braking?0.035:(throttle?-0.022:0);
-  shell.rotation.z=lerp(shell.rotation.z,targetRoll,1-Math.pow(0.002,dt));
-  shell.rotation.x=lerp(shell.rotation.x,targetPitch,1-Math.pow(0.002,dt));
+// chassis
+    const targetRoll=-S.steerAngle*(S.speed/S.maxSpeed)*0.09;
+    const targetPitch=braking?0.035:(throttle?-0.022:0);
+    
+    // Add suspension bouncing effect
+    const suspensionFreq=Math.abs(S.speed)*0.3;
+    const suspensionAmt=Math.sin(performance.now()*suspensionFreq*0.01)*0.005*(S.speed/S.maxSpeed);
+    shell.rotation.z=lerp(shell.rotation.z,targetRoll+suspensionAmt,1-Math.pow(0.002,dt));
+    shell.rotation.x=lerp(shell.rotation.x,targetPitch+suspensionAmt*0.5,1-Math.pow(0.002,dt));
+    
+    // Add chassis vibration based on road surface and speed
+    const vibration=Math.sin(performance.now()*0.01)*(S.speed/100)*0.002;
+    shell.position.y+=vibration;
+    
+    // Add slight yaw oscillation when turning sharply
+    const yawOsc=Math.abs(S.steerAngle)>0.3?Math.sin(performance.now()*0.03)*S.steerAngle*0.02:0;
+    shell.rotation.y+=yawOsc;
 
   // doors animation
   S.doorP=lerp(S.doorP,S.doorsOpen?1:0,1-Math.pow(0.002,dt));
@@ -2463,12 +2650,12 @@ function updateDocking(dt){
     S.docked=t.index;
     audio.chime();
     audio.noiseBurst(0.22,200,0.05,1.4);      // air-suspension thump at the kerb
-    toast('ðŸšŒ Pulled into '+t.name+' bay â€” press E for doors',2600);
+    toast('🚌 Pulled into '+t.name+' bay — press E for doors',2600);
     announce('Arriving at '+t.name+'. Please prepare to alight.');
     if(S.doorsOpen)beginDwell(t.index);
   }else if(!ok&&S.docked===t.index){
     S.docked=-1;
-    if(S.dwelling)cancelDwell('Pulled away â€” service interrupted');
+    if(S.dwelling)cancelDwell('Pulled away — service interrupted');
   }
   // ghost marker
   const show=d<110;
@@ -2485,11 +2672,11 @@ function updateDocking(dt){
   // approach announcements (once per stop approach)
   const nxt=onboard.filter(p=>p.destIdx===t.index).length;
   if(d<75&&!S.annA){
-    announce('Next stop: '+t.name+(nxt?(' â€” '+nxt+' passenger'+(nxt>1?'s':'')+' alighting.'):'.'));
+    announce('Next stop: '+t.name+(nxt?(' — '+nxt+' passenger'+(nxt>1?'s':'')+' alighting.'):'.'));
     S.annA=true;
   }
   if(d<38&&!S.annB){
-    announce('This stop is '+t.name+'. Please mind the doors â€” thank you.');
+    announce('This stop is '+t.name+'. Please mind the doors — thank you.');
     S.annB=true;
     if(nxt>0)stopBell();
   }
@@ -2531,10 +2718,10 @@ function refreshManifest(){
   if($('manifestOverlay').classList.contains('hidden'))return;
   const t=stops[S.targetStop];
   $('queueList').innerHTML=t.queue.length?
-    t.queue.map(p=>`<div>â€¢ to <b class="text-amber-300">${stops[p.destIdx].name}</b> â€” ${fmtMoney(p.fare)}</div>`).join(''):
+    t.queue.map(p=>`<div>• to <b class="text-amber-300">${stops[p.destIdx].name}</b> — ${fmtMoney(p.fare)}</div>`).join(''):
     '<div class="text-slate-500">nobody waiting here</div>';
   $('manifestList').innerHTML=onboard.length?
-    onboard.map((p,i)=>`<div class="flex justify-between"><span>#${i+1} â†’ <b class="text-amber-300">${stops[p.destIdx].name}</b></span><span class="mono-font text-emerald-400">${fmtMoney(p.fare)}</span></div>`).join(''):
+    onboard.map((p,i)=>`<div class="flex justify-between"><span>#${i+1} → <b class="text-amber-300">${stops[p.destIdx].name}</b></span><span class="mono-font text-emerald-400">${fmtMoney(p.fare)}</span></div>`).join(''):
     '<div class="text-slate-500">bus is empty</div>';
 }
 function toggleManifest(){
@@ -2630,12 +2817,44 @@ function animate(){
 
   if(rain.visible){
     const p=rain.geometry.attributes.position;
+    // wind + bus velocity make rain streak diagonally
+    const windX=Math.sin(rain.windT)*0.5+0.3;
+    const windZ=Math.cos(rain.windT)*0.5+0.3;
+    rain.windT+=dt*1.2;
+    const busSpeed=S.speed*S.maxSpeed/3600;
     for(let i=0;i<p.count;i++){
-      p.array[i*3+1]-=dt*26;
-      if(p.array[i*3+1]<0)p.array[i*3+1]=45;
+      p.array[i*3]+= (windX + busSpeed*0.05)*dt;
+      p.array[i*3+1]-=dt*(26+Math.random()*8);
+      p.array[i*3+2]+= (windZ + busSpeed*0.05)*dt;
+      if(p.array[i*3+1]<0)p.array[i*3+1]=60;
+      if(Math.abs(p.array[i*3])>100)p.array[i*3]=(Math.random()-0.5)*200;
+      if(Math.abs(p.array[i*3+2])>100)p.array[i*3+2]=(Math.random()-0.5)*200;
     }
     p.needsUpdate=true;
     rain.position.set(bus.position.x,0,bus.position.z);
+  }
+
+  // Update atmospheric effects
+  // Animate floating particles
+  if(atmoParticles.visible){
+    const pos=atmoParticles.geometry.attributes.position;
+    for(let i=0;i<N;i++){
+      pos.array[i*3+1]-=dt*0.1;
+      if(pos.array[i*3+1]<10){pos.array[i*3+1]=Math.random()*50+40;}
+    }
+    pos.needsUpdate=true;
+    atmoParticles.position.set(bus.position.x,0,bus.position.z);
+    atmoParticles.visible=Math.random()>0.99?false:true;
+  }
+
+  // Animate birds
+  if(typeof birds!=='undefined'&&birds.children){
+    birds.children.forEach((bird,i)=>{
+      bird.phase=(bird.phase||0)+dt*bird.speed;
+      bird.position.x=(bird.initPos.x||0)+Math.cos(bird.phase)*100;
+      bird.position.z=(bird.initPos.z||0)+Math.sin(bird.phase)*100;
+      bird.position.y=bird.altitude;
+    });
   }
 
   if(S.shiftRunning){
