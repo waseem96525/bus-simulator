@@ -544,7 +544,7 @@ function applyTimeOfDay(force){
   }else{
     scene.background.setHex(horizon);
     scene.fog.color.setHex(horizon);
-    scene.fog.density=hour>6.4&&hour<18.6?0.0021:0.0034;
+    scene.fog.density=hour>6.4&&hour<18.6?0.00055:0.0012;
     sunLight.intensity=k.sun*0.12;
     sunLight.color.setHex(k.sun<0.6?0xffb877:0xfff6e5);
     hemi.intensity=k.amb;
@@ -561,7 +561,7 @@ function applyTimeOfDay(force){
   
   // Dynamic fog density based on time of day
   if(k.dark&&!raining){
-    scene.fog.density=0.0045;
+    scene.fog.density=0.0012;
   }else if(!k.dark&&raining){
     scene.fog.density=0.0042;
   }
