@@ -735,6 +735,8 @@ mergeInto(edgeG,edgeMat,false);
 /* =========================================================================
    4. ROUTE + STOPS
    ========================================================================= */
+function headingVec(h){return new THREE.Vector3(Math.sin(h),0,Math.cos(h));}
+function rightVec(h){return new THREE.Vector3(Math.cos(h),0,-Math.sin(h));}
 const ROUTES={
   main: {
     name: 'LINE 12 — CITY LOOP',
