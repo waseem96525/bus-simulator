@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#020617">
+<meta name="description" content="Drive a realistic city bus through a 3D urban environment.">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>Metro Transit 3D — Bus Driver Simulator</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -128,11 +133,12 @@
       </div>
     </div>
 
-    <div class="flex flex-col items-end gap-1.5 pointer-events-auto">
+<div class="flex flex-col items-end gap-1.5 pointer-events-auto">
       <div class="flex gap-1.5 flex-wrap justify-end">
+        <button id="btnInstall" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-emerald-300 font-bold hidden">⬇ Install</button>
         <button id="btnCam" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-white font-bold">📷 <span id="camName">Chase</span></button>
         <button id="btnWeather" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold"><span id="weatherIcon">☀️</span></button>
-        <button id="btnSteerMode" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-amber-300 font-bold"><span id="steerModeIcon">☸️ Wheel</span></button>
+        <button id="btnSteerMode" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-amber-300 font-bold"><span id="steerModeIcon"> Steering</span></button>
         <button id="btnAudio" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold"><span id="audioIcon">🔊</span></button>
         <button id="btnManifest" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold">📋</button>
         <button id="btnEndShift" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-rose-300 font-bold">⏹ Shift</button>
@@ -2056,6 +2062,35 @@ $('btnRestart').addEventListener('click',()=>{$('resultsOverlay').classList.add(
 $('btnStartGame').addEventListener('click',()=>{
   audio.init();audio.resume();audio.starter();
   $('startOverlay').classList.add('hidden');
+
+  // PWA install prompt
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      console.log('Service Worker registered:', reg);
+    }).catch(err=>console.log('Service Worker registration failed:', err));
+  }
+});
+
+// PWA Install
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  $('btnInstall').classList.remove('hidden');
+});
+$('btnInstall').addEventListener('click',async()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  const {outcome}=await deferredPrompt.userChoice;
+  if(outcome==='accepted'){
+    $('btnInstall').classList.add('hidden');
+    toast('Game installed!',1500);
+  }
+});
+window.addEventListener('appinstalled',()=>{
+  $('btnInstall').classList.add('hidden');
+  toast('Game installed!',1500);
+});
   S.shiftRunning=true;
   shiftGear('D');S.handbrake=false;
   announce('Good morning drivers. '+ROUTES[CURRENT_ROUTE].name+'. First stop: '+stops[S.targetStop].name+'.');
