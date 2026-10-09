@@ -219,6 +219,7 @@
           <span class="text-[9px] text-slate-400 font-bold">KM/H</span>
         </div>
         <div id="speedLimitTag" class="text-[9px] font-bold mono-font text-emerald-400">LIMIT 50</div>
+        <div id="fuelStatus" class="hidden text-[8px] font-black mono-font text-amber-300">FUEL <span id="fuelValue">100%</span></div>
       </div>
 
       <div class="flex flex-col items-center">
@@ -295,7 +296,15 @@
   <div class="glass-panel p-6 sm:p-7 rounded-3xl max-w-md w-full text-center flex flex-col items-center border border-emerald-500/30 shadow-[0_0_50px_rgba(16,185,129,0.18)]">
     <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-3xl mb-3 shadow-lg shadow-emerald-500/30">🚌</div>
     <h1 class="hud-font text-2xl sm:text-3xl font-black text-white mb-1 tracking-wide" id="startRouteLabel">LINE 12</h1>
-    <p class="text-xs text-slate-300 mb-5">Drive the 8-stop loop. Stop at the kerb, open the doors, board waiting passengers and drop them off at their stops.</p>
+    <p id="startDescription" class="text-xs text-slate-300 mb-5">Drive the long-distance highway loop through the forest and hill country.</p>
+    <label class="w-full text-left text-[10px] font-black uppercase text-slate-400 mb-1" for="routeSelect">Choose your route</label>
+    <select id="routeSelect" class="w-full mb-4 rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm font-bold text-white pointer-events-auto">
+      <option value="long" selected>Highway Journey · Forest, Dhaba &amp; Hill Country</option>
+      <option value="highwayExpress">Highway 7X · Express Coach to the Highlands</option>
+      <option value="main">Line 12 · City Loop</option>
+      <option value="express">Line 12X · Express</option>
+      <option value="night">Line 12N · Night Owl</option>
+    </select>
     <div class="bg-slate-900/80 rounded-xl p-3 w-full text-left mb-5 border border-slate-800 text-[11px] text-slate-300 space-y-1">
       <div>🎮 <b>W/S</b> (or ↑↓) gas &amp; brake · <b>A/D</b> (or ←→) steer · <b>Space</b> parking brake · <b>E</b> doors</div>
       <div>🔔 <b>B</b> stop-request bell · <b>C</b> camera · <b>−/+ buttons</b> camera zoom · <b>H</b> horn</div>
@@ -460,7 +469,7 @@ const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x8fc7e8);
 scene.fog=new THREE.FogExp2(0x8fc7e8,0.0022);
 
-const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,0.1,1400);
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,0.1,2400);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
@@ -710,7 +719,7 @@ const bldMats=[0x8d99ae,0xb08968,0x6c7a89,0x9c6b6b,0x7f8c8d,0xa3b18a].map(c=>
 const windowGlowMat=new THREE.MeshStandardMaterial({color:0xf6d58d,emissive:0xf59e0b,emissiveIntensity:0.5,roughness:.35,metalness:.15});
 
 // ground
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(2000,2000),grassMat);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(3400,3400),grassMat);
 ground.rotation.x=-Math.PI/2;ground.position.y=-0.06;ground.receiveShadow=true;scene.add(ground);
 
 // road surface (one big plane under everything)
@@ -804,12 +813,220 @@ for(let i=-3;i<=3;i++){
 mergeInto(dashG,markMat,false);
 mergeInto(edgeG,edgeMat,false);
 
+/* ---------- long-distance highway and countryside ---------- */
+const highwayCenterX=-175;
+const highwayStartZ=265,highwayEndZ=1300;
+const highwayLength=highwayEndZ-highwayStartZ;
+const countryRoadMat=new THREE.MeshStandardMaterial({map:asphaltTex,roughness:.68,metalness:.02});
+const countryRoad=new THREE.Mesh(new THREE.PlaneGeometry(30,highwayLength),countryRoadMat);
+countryRoad.rotation.x=-Math.PI/2;
+countryRoad.position.set(highwayCenterX,0.025,(highwayStartZ+highwayEndZ)/2);
+countryRoad.receiveShadow=true;scene.add(countryRoad);
+const uTurnApron=new THREE.Mesh(new THREE.PlaneGeometry(46,44),countryRoadMat);
+uTurnApron.rotation.x=-Math.PI/2;
+uTurnApron.position.set(highwayCenterX,0.03,highwayEndZ-8);
+uTurnApron.receiveShadow=true;scene.add(uTurnApron);
+const countrysideGrassMat=grassMat.clone();
+countrysideGrassMat.map=grassTex.clone();
+countrysideGrassMat.map.repeat.set(80,80);
+[-1,1].forEach(side=>{
+  const shoulderLand=new THREE.Mesh(new THREE.PlaneGeometry(880,1000),countrysideGrassMat);
+  shoulderLand.rotation.x=-Math.PI/2;
+  shoulderLand.position.set(highwayCenterX+side*455,0.01,860);
+  shoulderLand.receiveShadow=true;scene.add(shoulderLand);
+});
+const riverMat=new THREE.MeshPhysicalMaterial({color:0x367f91,roughness:.16,metalness:.12,transparent:true,opacity:.84,clearcoat:.8,clearcoatRoughness:.12});
+const river=new THREE.Mesh(new THREE.PlaneGeometry(1100,48),riverMat);
+river.rotation.x=-Math.PI/2;river.position.set(highwayCenterX,.018,790);scene.add(river);
+const bridgeRailMat=new THREE.MeshStandardMaterial({color:0xb8c3c2,roughness:.5,metalness:.35});
+for(const side of [-1,1]){
+  const rail=new THREE.Mesh(new THREE.BoxGeometry(.28,.28,48),bridgeRailMat);
+  rail.position.set(highwayCenterX+side*14.6,.72,790);scene.add(rail);
+  for(let z=768;z<=812;z+=11){
+    const post=new THREE.Mesh(new THREE.BoxGeometry(.3,1.15,.3),bridgeRailMat);
+    post.position.set(highwayCenterX+side*14.6,.58,z);scene.add(post);
+  }
+}
+const roadLineMat=new THREE.MeshBasicMaterial({color:0xe7e1c8});
+const medianLineMat=new THREE.MeshBasicMaterial({color:0xf2c94c});
+for(const x of [highwayCenterX-14,highwayCenterX+14]){
+  const line=new THREE.Mesh(new THREE.PlaneGeometry(0.28,highwayLength),roadLineMat);
+  line.rotation.x=-Math.PI/2;line.position.set(x,0.055,(highwayStartZ+highwayEndZ)/2);scene.add(line);
+}
+for(let z=highwayStartZ+4;z<highwayEndZ-6;z+=14){
+  const dash=new THREE.Mesh(new THREE.PlaneGeometry(0.22,5),medianLineMat);
+  dash.rotation.x=-Math.PI/2;dash.position.set(highwayCenterX,0.058,z);scene.add(dash);
+}
+const railMat=new THREE.MeshStandardMaterial({color:0x8d999e,metalness:.72,roughness:.36});
+for(const side of [-1,1]){
+  [[300,555],[725,775],[930,980],[1120,1282]].forEach(([start,end])=>{
+    const rail=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.34,end-start),railMat);
+    rail.position.set(highwayCenterX+side*16,0.78,(start+end)/2);scene.add(rail);
+    for(let z=start;z<end;z+=18){
+      const post=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.78,0.18),railMat);
+      post.position.set(highwayCenterX+side*16,0.5,z);scene.add(post);
+    }
+  });
+}
+
+// Instancing keeps the long forest dense without adding hundreds of draw calls.
+const woodland=[];
+for(let i=0;i<440;i++){
+  const side=i%2?1:-1;
+  const z=300+Math.random()*1040;
+  const offset=27+Math.random()*175;
+  const nearService=[640,850,1050].some(serviceZ=>Math.abs(z-serviceZ)<95&&offset<105);
+  if(!nearService)woodland.push({x:highwayCenterX+side*offset,z,height:5+Math.random()*8,radius:2.8+Math.random()*3.2});
+}
+const treeTrunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.42,.68,1,6),
+  new THREE.MeshStandardMaterial({color:0x59412b,roughness:1}),woodland.length);
+const treeCrowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),
+  new THREE.MeshStandardMaterial({color:0x285d38,roughness:1}),woodland.length*3);
+const treeDummy=new THREE.Object3D();
+woodland.forEach((tree,i)=>{
+  const trunkWidth=.55+Math.random()*.35;
+  treeDummy.position.set(tree.x,tree.height/2,tree.z);
+  treeDummy.scale.set(trunkWidth,tree.height,trunkWidth);treeDummy.updateMatrix();
+  treeTrunks.setMatrixAt(i,treeDummy.matrix);
+  const leafColors=[0x1f5133,0x28643c,0x347344];
+  for(let layer=0;layer<3;layer++){
+    const crownIndex=i*3+layer;
+    treeDummy.position.set(tree.x+(layer-1)*tree.radius*.32,tree.height*.68+layer*tree.radius*.45,tree.z+(layer===1?0:tree.radius*.12));
+    treeDummy.scale.set(tree.radius*(layer===1?1.12:.82),tree.radius*(layer===1?1:.82),tree.radius*(layer===1?1.05:.82));
+    treeDummy.rotation.set(0,Math.random()*Math.PI,0);treeDummy.updateMatrix();
+    treeCrowns.setMatrixAt(crownIndex,treeDummy.matrix);
+    treeCrowns.setColorAt(crownIndex,new THREE.Color(leafColors[layer]));
+  }
+});
+treeTrunks.instanceMatrix.needsUpdate=true;treeCrowns.instanceMatrix.needsUpdate=true;
+treeCrowns.instanceColor.needsUpdate=true;
+treeTrunks.castShadow=true;treeCrowns.castShadow=true;
+scene.add(treeTrunks,treeCrowns);
+
+function makeHighwayBoard(text){
+  return makeCanvasTex((ctx,w,h)=>{
+    ctx.fillStyle='#0c3b34';ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#d8e7d2';ctx.lineWidth=8;ctx.strokeRect(5,5,w-10,h-10);
+    ctx.fillStyle='#f3f5dd';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font='bold 48px Arial';ctx.fillText(text,w/2,h/2);
+  },512,112);
+}
+[
+  {z:330,text:'HIGHWAY 7  ·  HILL COUNTRY'},
+  {z:560,text:'JUNGLE DHABA  ·  AHEAD'},
+  {z:785,text:'RIVERSIDE FUEL  ·  AHEAD'},
+  {z:1160,text:'HIGHLAND TERMINAL  ·  AHEAD'}
+].forEach(({z,text})=>{
+  const sign=new THREE.Group();
+  const postMat=new THREE.MeshStandardMaterial({color:0x77838a,metalness:.65,roughness:.4});
+  for(const x of [-2.8,2.8]){
+    const post=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,5.8,8),postMat);
+    post.position.set(x,2.9,0);sign.add(post);
+  }
+  const board=new THREE.Mesh(new THREE.BoxGeometry(8.4,2.3,.28),new THREE.MeshStandardMaterial({color:0x0c3b34,roughness:.65}));
+  board.position.y=5.4;sign.add(board);
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(8.1,2.0),new THREE.MeshBasicMaterial({map:makeHighwayBoard(text),side:THREE.DoubleSide}));
+  face.position.set(0,5.4,.16);sign.add(face);
+  sign.position.set(highwayCenterX-20,0,z);scene.add(sign);
+});
+
+function buildRoadsideService(kind,z,side,label){
+  const service=new THREE.Group();
+  const centerX=highwayCenterX+side*55;
+  const wallColor=kind==='dhaba'?0x9a6843:(kind==='hotel'?0xd4d0bd:0x667782);
+  const wallMat=new THREE.MeshStandardMaterial({color:wallColor,roughness:.82});
+  const roofMat=new THREE.MeshStandardMaterial({color:kind==='dhaba'?0x485b50:0x384754,roughness:.68,metalness:.18});
+  const building=new THREE.Mesh(new THREE.BoxGeometry(kind==='hotel'?27:22,kind==='hotel'?9:6,16),wallMat);
+  building.position.set(centerX,kind==='hotel'?4.5:3,z);service.add(building);
+  const roof=new THREE.Mesh(new THREE.BoxGeometry(kind==='hotel'?29:24,.8,18),roofMat);
+  roof.position.set(centerX,kind==='hotel'?9.4:6.4,z);service.add(roof);
+  const signTexture=makeCanvasTex((ctx,w,h)=>{
+    ctx.fillStyle=kind==='dhaba'?'#8b321f':(kind==='hotel'?'#173e50':'#123c34');ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#f6e7ba';ctx.lineWidth=7;ctx.strokeRect(5,5,w-10,h-10);
+    ctx.fillStyle='#fff4cf';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font='bold 48px Arial';ctx.fillText(label,w/2,h/2);
+  },512,96);
+  const frontX=centerX-side*(kind==='hotel'?13.7:11.2);
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(kind==='fuel'?16:19,3),
+    new THREE.MeshBasicMaterial({map:signTexture,side:THREE.DoubleSide}));
+  sign.position.set(frontX,kind==='hotel'?8.1:5.5,z);sign.rotation.y=-side*Math.PI/2;service.add(sign);
+
+  if(kind==='fuel'){
+    const canopy=new THREE.Mesh(new THREE.BoxGeometry(23,.65,18),new THREE.MeshStandardMaterial({color:0xe8eee5,roughness:.45}));
+    canopy.position.set(centerX-side*15,5.3,z);service.add(canopy);
+    for(const dx of [-10,10])for(const dz of [-7,7]){
+      const pillar=new THREE.Mesh(new THREE.BoxGeometry(.45,5,.45),new THREE.MeshStandardMaterial({color:0xd9e3dd,metalness:.25,roughness:.45}));
+      pillar.position.set(centerX-side*15+dx,2.5,z+dz);service.add(pillar);
+    }
+    for(const dz of [-5,0,5]){
+      const pump=new THREE.Mesh(new THREE.BoxGeometry(1.25,2.2,1.1),new THREE.MeshStandardMaterial({color:dz===0?0xe8f0ea:0x157c78,roughness:.4,metalness:.15}));
+      pump.position.set(centerX-side*18,.0+1.1,z+dz);service.add(pump);
+      const display=new THREE.Mesh(new THREE.BoxGeometry(.75,.42,.035),new THREE.MeshBasicMaterial({color:0xb7f5dd}));
+      display.position.set(centerX-side*18,1.55,z+dz+.57);service.add(display);
+    }
+  }else if(kind==='dhaba'){
+    const awning=new THREE.Mesh(new THREE.BoxGeometry(13,.35,10),new THREE.MeshStandardMaterial({color:0xb85827,roughness:.7}));
+    awning.position.set(centerX-side*12,4.4,z);service.add(awning);
+    for(const dz of [-3,3]){
+      const table=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.05,.18,10),new THREE.MeshStandardMaterial({color:0x815330,roughness:.85}));
+      table.position.set(centerX-side*20,.95,z+dz);service.add(table);
+      const base=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,.9,8),wallMat);
+      base.position.set(centerX-side*20,.48,z+dz);service.add(base);
+    }
+    const cookingSmoke=new THREE.Mesh(new THREE.CylinderGeometry(.32,.5,3.4,8),new THREE.MeshStandardMaterial({color:0x4a4138,roughness:1}));
+    cookingSmoke.position.set(centerX+side*7,7.5,z-4);service.add(cookingSmoke);
+  }else{
+    for(const floor of [2.7,6.1])for(const dz of [-5,0,5]){
+      const window=new THREE.Mesh(new THREE.BoxGeometry(.08,1.35,1.9),new THREE.MeshStandardMaterial({color:0x9ac8c6,roughness:.24,metalness:.16,emissive:0x31595a,emissiveIntensity:.16}));
+      window.position.set(frontX+side*.08,floor,z+dz);service.add(window);
+    }
+    const porch=new THREE.Mesh(new THREE.BoxGeometry(3,.35,12),roofMat);
+    porch.position.set(frontX-side*1.8,2.9,z);service.add(porch);
+  }
+  scene.add(service);
+}
+buildRoadsideService('dhaba',640,1,'JUNGLE DHABA');
+buildRoadsideService('fuel',850,-1,'RIVERSIDE FUEL');
+buildRoadsideService('hotel',1050,1,'HILLTOP HOTEL');
+buildRoadsideService('hotel',1050,-1,'VALLEY REST HOTEL');
+buildRoadsideService('fuel',850,1,'HIGHWAY FUEL');
+buildRoadsideService('dhaba',640,-1,'PINE VIEW DHABA');
+
 /* =========================================================================
    4. ROUTE + STOPS
    ========================================================================= */
 function headingVec(h){return new THREE.Vector3(Math.sin(h),0,Math.cos(h));}
 function rightVec(h){return new THREE.Vector3(Math.cos(h),0,-Math.sin(h));}
 const ROUTES={
+  long: {
+    name:'HIGHWAY 7 — FOREST & HILL COUNTRY',
+    color:0x14b8a6,
+    longDistance:true,
+    stops:[
+      {name:'METRO COACH TERMINAL',code:'MT',pos:new THREE.Vector3(-180,0,-135),h:0,pop:1.7,type:'terminal',dwell:45},
+      {name:'NORTH CITY GATE',code:'NG',pos:new THREE.Vector3(-180,0,225),h:0,pop:1.0,type:'coach-stop',dwell:25},
+      {name:'PINE FOREST LAY-BY',code:'PF',pos:new THREE.Vector3(-180,0,430),h:0,pop:.8,type:'rest-area',dwell:30},
+      {name:'JUNGLE DHABA',code:'JD',pos:new THREE.Vector3(-180,0,640),h:0,pop:1.4,type:'dhaba',service:'dhaba',dwell:50},
+      {name:'RIVERSIDE FUEL PLAZA',code:'RF',pos:new THREE.Vector3(-180,0,850),h:0,pop:1.0,type:'fuel-stop',service:'fuel',dwell:45},
+      {name:'HILLTOP HIGHWAY HOTEL',code:'HH',pos:new THREE.Vector3(-180,0,1050),h:0,pop:1.2,type:'hotel',service:'hotel',dwell:55},
+      {name:'HIGHLAND COACH TERMINAL',code:'HC',pos:new THREE.Vector3(-180,0,1270),h:0,pop:1.8,type:'terminal',dwell:60},
+      {name:'HIGHLAND RETURN BAY',code:'HR',pos:new THREE.Vector3(-170,0,1270),h:Math.PI,pop:1.0,type:'terminal',dwell:35},
+      {name:'HILLTOP HOTEL — RETURN',code:'H2',pos:new THREE.Vector3(-170,0,1050),h:Math.PI,pop:.9,type:'hotel',service:'hotel',dwell:35},
+      {name:'RIVERSIDE FUEL — RETURN',code:'R2',pos:new THREE.Vector3(-170,0,850),h:Math.PI,pop:.8,type:'fuel-stop',service:'fuel',dwell:35},
+      {name:'JUNGLE DHABA — RETURN',code:'J2',pos:new THREE.Vector3(-170,0,640),h:Math.PI,pop:1.1,type:'dhaba',service:'dhaba',dwell:40},
+      {name:'PINE FOREST REST AREA',code:'P2',pos:new THREE.Vector3(-170,0,430),h:Math.PI,pop:.7,type:'rest-area',dwell:25},
+      {name:'NORTH CITY GATE — RETURN',code:'N2',pos:new THREE.Vector3(-170,0,225),h:Math.PI,pop:1.0,type:'coach-stop',dwell:25},
+      {name:'OLD TOWN LINK',code:'OT',pos:new THREE.Vector3(-170,0,45),h:Math.PI,pop:1.0,type:'residential',dwell:25},
+      {name:'METRO TERMINAL — RETURN',code:'MR',pos:new THREE.Vector3(-170,0,-135),h:Math.PI,pop:1.5,type:'terminal',dwell:40}
+    ]
+  },
+  highwayExpress: {
+    name:'HIGHWAY 7X — EXPRESS COACH',
+    color:0xf59e0b,
+    longDistance:true,
+    stopSource:'long',
+    stops:[0,1,3,4,6,7,9,12,14]
+  },
   main: {
     name: 'LINE 12 — CITY LOOP',
     color: 0x0284c7,
@@ -840,14 +1057,37 @@ const ROUTES={
   }
 };
 
-const CURRENT_ROUTE='main';
-const rawStops=ROUTES[CURRENT_ROUTE].stops;
+const routeSelect=document.getElementById('routeSelect');
+const rememberedRoute=sessionStorage.getItem('selectedRoute');
+let CURRENT_ROUTE=ROUTES[rememberedRoute]?rememberedRoute:(routeSelect?.value||'long');
+if(routeSelect){
+  routeSelect.value=CURRENT_ROUTE;
+  routeSelect.addEventListener('change',()=>{
+    sessionStorage.setItem('selectedRoute',routeSelect.value);
+    location.reload();
+  });
+}
+function routeStopsFor(routeId){
+  const routeStops=ROUTES[routeId].stops;
+  const sourceStops=ROUTES[ROUTES[routeId].stopSource||'main'].stops;
+  return typeof routeStops[0]==='number'?routeStops.map(index=>sourceStops[index]):routeStops;
+}
+let rawStops=routeStopsFor(CURRENT_ROUTE);
+const routeDescriptions={
+  long:'Take the Highway 7 coach loop through pine forest, jungle dhabas, fuel plazas and hill-country hotels.',
+  highwayExpress:'Run the faster Highway 7X intercity coach with essential forest, fuel and terminal stops.',
+  main:'Drive the 12-stop city loop. Serve passengers at the kerb and complete the full urban circuit.',
+  express:'Run the express city service, connecting the major districts with fewer stops.',
+  night:'Drive the Night Owl route through the city after dark.'
+};
+document.getElementById('startRouteLabel').textContent=ROUTES[CURRENT_ROUTE].name;
+document.getElementById('startDescription').textContent=routeDescriptions[CURRENT_ROUTE];
 const DOCK_OFF=9.9;
 const stops=rawStops.map((s,i)=>{
   const centre=s.pos.clone();
   const kerb=centre.clone().add(rightVec(s.h).multiplyScalar(DOCK_OFF));
   return {index:i,name:s.name,code:s.code,h:s.h,centre,pos:kerb,pop:s.pop,
-          type:s.type, dwell:s.dwell,
+          type:s.type,service:s.service,dwell:s.dwell,
           queue:[],spawnT:1+Math.random()*6,servedCount:0,visited:false,loiterers:[]};
 });
 
@@ -891,14 +1131,15 @@ const bayMat=new THREE.MeshBasicMaterial({color:0xfacc15,transparent:true,opacit
 function signTexture(stop){
   return makeCanvasTex((g,w,h)=>{
     g.fillStyle='#f8fafc';g.fillRect(0,0,w,h);
-    g.fillStyle='#0284c7';g.fillRect(0,0,w,34);
+    g.fillStyle='#'+ROUTES[CURRENT_ROUTE].color.toString(16).padStart(6,'0');g.fillRect(0,0,w,34);
     g.fillStyle='#fff';g.font='bold 22px Arial';g.textAlign='center';
     g.fillText(ROUTES[CURRENT_ROUTE].name.split(' — ')[0],w/2,25);
     g.fillStyle='#0f172a';g.font='bold 20px Arial';
     const nm=stop.name.length>16?stop.name.slice(0,16):stop.name;
     g.fillText(nm,w/2,64);
     g.fillStyle='#475569';g.font='16px Arial';
-    g.fillText(stop.code+' • CITY LOOP',w/2,88);
+    const serviceName=(ROUTES[CURRENT_ROUTE].name.split('—')[1]||'CITY LOOP').trim().slice(0,18);
+    g.fillText(stop.code+' · '+serviceName,w/2,88);
     g.fillStyle='#dc2626';g.font='bold 15px Arial';g.fillText('BUS STOP',w/2,112);
   },256,128);
 }
@@ -2098,6 +2339,7 @@ const S={
   handbrake:true,headlights:false,
   weather:0,camera:0,
   cash:0,fines:0,comfort:100,
+  fuel:100,fuelWarn:false,fuelOutWarn:false,
   served:0,boardedTotal:0,stopsServiced:0,
   shiftMin:7*60,timeScale:1.5,shiftRunning:false,
   targetStop:0,
@@ -2114,7 +2356,7 @@ const $=id=>document.getElementById(id);
 const ui={
   next:$('hudNextStop'),dist:$('hudStopDist'),clock:$('hudClock'),prog:$('routeProgress'),
   cash:$('hudCashText'),pax:$('hudPaxText'),served:$('hudServedText'),comfort:$('hudComfortText'),
-  speed:$('speedDisplay'),toast:$('toast'),pa:$('paText'),
+  speed:$('speedDisplay'),toast:$('toast'),pa:$('paText'),fuel:$('fuelValue'),fuelStatus:$('fuelStatus'),
   lampStop:$('lampStopReq'),lampDoors:$('lampDoors'),lampHb:$('lampHbrake'),lampDwell:$('lampDwell'),
   dwellBar:$('dwellBar'),dwellFill:$('dwellFill'),dwellTitle:$('dwellTitle'),dwellCount:$('dwellCount'),
   farebox:$('fareboxText'),fine:$('fineText'),pop:$('popText'),limit:$('speedLimitTag'),
@@ -2142,7 +2384,7 @@ function refreshHUD(){
    const t=stops[S.targetStop];
    ui.next.textContent=t.name;
    ui.routeLabelBadge.textContent=ROUTES[CURRENT_ROUTE].name.split(' — ')[0];
-   const routeColors={main:'#0284c7',express:'#f59e0b',night:'#7c3aed'};
+  const routeColors={long:'#0f766e',highwayExpress:'#d97706',main:'#0284c7',express:'#f59e0b',night:'#7c3aed'};
    ui.routeLabelBadge.style.backgroundColor=routeColors[CURRENT_ROUTE];
    ui.routeLabelBadge.style.color='#fff';
    const d=Math.round(Math.hypot(bus.position.x-t.pos.x,bus.position.z-t.pos.z));
@@ -2177,6 +2419,9 @@ function refreshHUD(){
   const over=Math.abs(S.speed)>CFG.limit;
   ui.limit.textContent='LIMIT '+CFG.limit;
   ui.limit.style.color=over?'#f87171':'#34d399';
+  ui.fuelStatus.classList.toggle('hidden',!ROUTES[CURRENT_ROUTE].longDistance);
+  ui.fuel.textContent=Math.ceil(S.fuel)+'%';
+  ui.fuelStatus.style.color=S.fuel<=15?'#fb7185':'#fcd34d';
 }
 
 /* =========================================================================
@@ -2358,53 +2603,9 @@ function cycleRoute(){
     toast('Can only switch routes at a stop',1800);
     return;
   }
-  // Reset for new route
-  CURRENT_ROUTE=newRoute;
-  rawStops=ROUTES[CURRENT_ROUTE].stops;
-  // Rebuild stops array
-  stops.length=0;
-  rawStops.forEach((s,i)=>{
-    const centre=s.pos.clone();
-    const kerb=centre.clone().add(rightVec(s.h).multiplyScalar(DOCK_OFF));
-    stops.push({index:i,name:s.name,code:s.code,h:s.h,centre,pos:kerb,pop:s.pop,
-            type:s.type, dwell:s.dwell,
-            queue:[],spawnT:1+Math.random()*6,servedCount:0,visited:false,loiterers:[]});
-  });
-  // Rebuild routePath
-  routePath.length=0;
-  routeSegments.length=0;
-  rawStops.forEach((s,i)=>{
-    const nxt=rawStops[(i+1)%rawStops.length];
-    const start=s.pos.clone();
-    const end=nxt.pos.clone();
-    const dir=end.clone().sub(start).normalize();
-    const dist=start.distanceTo(end);
-    routePath.push(start.clone());
-    routeSegments.push({from:i, to:(i+1)%rawStops.length, dist, dir});
-    const segments=Math.max(3, Math.floor(dist/15));
-    for(let k=1;k<segments;k++){
-      const t=k/segments;
-      const pt=start.clone().lerp(end, t);
-      if(t>0.3 && t<0.7){
-        const perp=new THREE.Vector3(-dir.z, 0, dir.x);
-        pt.addScaledVector(perp, Math.sin(t*Math.PI)*3);
-      }
-      routePath.push(pt);
-    }
-  });
-  routePath.push(rawStops[0].pos.clone());
-  // Reset progress
-  S.targetStop=0;
-  stops.forEach(s=>{s.visited=false;s.servedCount=0;});
-  // Update progress bar
-  ui.prog.innerHTML='';
-  for(let i=0;i<stops.length;i++){
-    const d=document.createElement('div');
-    d.className='w-1.5 h-3 rounded-sm bg-slate-600';
-    ui.prog.appendChild(d);
-  }
-  announce('Route changed to '+ROUTES[CURRENT_ROUTE].name+'. First stop: '+stops[0].name+'.');
-  toast('Switched to '+ROUTES[CURRENT_ROUTE].name,2000);
+  if(onboard.length){toast('Finish passenger drop-offs before changing routes',1800);return;}
+  sessionStorage.setItem('selectedRoute',newRoute);
+  location.reload();
 }
 function setHeadlights(on){
   S.headlights=on;
@@ -2576,6 +2777,10 @@ function beginDwell(idx){
     ui.lampDwell.classList.add('hidden');ui.dwellBar.classList.add('hidden');
   }
   const stop=stops[idx];
+  if(ROUTES[CURRENT_ROUTE].longDistance&&stop.service==='fuel'){
+    S.fuel=100;S.fuelWarn=false;S.fuelOutWarn=false;
+    toast('Fuel topped up at '+stop.name,2200);
+  }
   S.dwellStop=idx;
   S.dwelling=true;S.dwellT=0;
   S.alightQueue=onboard.filter(p=>p.destIdx===idx&&!p.walk);
@@ -2960,7 +3165,7 @@ function updateDriving(dt){
   cockpitWheel.rotation.z=-S.steerAngle*3.2;
 
   // longitudinal
-  const throttleAllowed=!S.doorsOpen;
+  const throttleAllowed=!S.doorsOpen&&(!ROUTES[CURRENT_ROUTE].longDistance||S.fuel>0);
   const throttle=IN.gas&&!S.handbrake&&throttleAllowed&&S.gear!=='P'&&S.gear!=='N';
   const braking=IN.brake;
   const prev=S.speed;
@@ -3003,7 +3208,15 @@ function updateDriving(dt){
     bus.rotation.y=S.heading;
     bus.position.x+=Math.sin(S.heading)*v*dt;
     bus.position.z+=Math.cos(S.heading)*v*dt;
-    S.odo=(S.odo||0)+Math.abs(v)*dt;
+    const travelMeters=Math.abs(v)*dt;
+    S.odo=(S.odo||0)+travelMeters;
+    if(ROUTES[CURRENT_ROUTE].longDistance){
+      S.fuel=Math.max(0,S.fuel-travelMeters/55);
+      if(S.fuel<=15&&!S.fuelWarn){
+        S.fuelWarn=true;toast('Low fuel — stop at the next fuel plaza',2600);
+      }
+      if(S.fuel===0&&!S.fuelOutWarn){S.fuelOutWarn=true;toast('Out of fuel — coast to a fuel plaza',2800);}
+    }
     const roll=(v*dt)/0.58;
     spinWheels.forEach(w=>w.rotation.x+=roll);
   }
@@ -3164,6 +3377,7 @@ function toggleManifest(){
    ========================================================================= */
 function startShift(){
   S.cash=0;S.fines=0;S.comfort=100;S.served=0;S.boardedTotal=0;S.stopsServiced=0;
+  S.fuel=100;S.fuelWarn=false;S.fuelOutWarn=false;
   S.shiftMin=7*60;S.targetStop=0;S.shiftRunning=true;S.docked=-1;S.dwelling=false;
   S.punctualStops=0;S.annA=false;S.annB=false;S.odo=0;S.moodSum=0;S.moodCount=0;S.gaveUp=0;
   S.weather=0;rain.visible=false;dryRoad();lastSkyHour=-99;

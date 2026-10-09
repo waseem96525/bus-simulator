@@ -1,7 +1,7 @@
 # 🚌 Metro Transit 3D — Bus Driver Simulator
 
-A 3D city-bus simulator that runs entirely in the browser. Drive **Line 12 · City Loop**,
-stop at the kerb, open the doors, board waiting passengers and drop them off at their stops.
+A 3D bus simulator that runs entirely in the browser. Choose a city route or take **Highway 7**
+through pine forest and jungle, stopping at dhabas, hotels and fuel plazas before returning to the city.
 
 No build step, no dependencies to install — it is a single self-contained HTML file.
 
@@ -28,12 +28,14 @@ On touch devices: drag the wheel or use the ◀▶ buttons, and hold the on-scre
 
 ## How the shift works
 
-1. The HUD shows the **next stop** and its distance; a cyan ghost bus marks the exact bay.
-2. Pull into the bay, stop, and press **E**. Alighting passengers step off first, then
+1. Choose a route before starting. Highway 7 has a full service loop and a faster Highway 7X express.
+2. The HUD shows the **next stop** and its distance; a cyan ghost bus marks the exact bay.
+3. Pull into the bay, stop, and press **E**. Alighting passengers step off first, then
    waiting passengers board, walk down the aisle and take their seats.
-3. The route only advances when the stop is actually serviced — closing the doors early
+4. The route only advances when the stop is actually serviced — closing the doors early
    cancels the service and you stay on the stop.
-4. Fares are paid on exit, distance-based. Happy riders leave a tip.
+5. Highway trips use fuel. Stop at a fuel plaza and open the doors to refill; dhabas and hotels are passenger stops.
+6. Fares are paid on exit, distance-based. Happy riders leave a tip.
 
 ## Scoring
 
@@ -51,6 +53,7 @@ On touch devices: drag the wheel or use the ◀▶ buttons, and hold the on-scre
 - Detailed procedural vehicles: 8 body types including taxis, police and rival buses,
   working lights, indicators, brake lights and steering wheels
 - Road-graph traffic with traffic lights, lane discipline, car following and yielding
+- Long-distance divided highway, instanced roadside forests, river bridge, dhabas, hotels and petrol plazas
 - Broken-down-vehicle incidents cleared with the horn
 - Weather: clear or rain, with wipers, wet-road reflections and reduced visibility
 
