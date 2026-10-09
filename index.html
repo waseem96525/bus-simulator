@@ -90,7 +90,7 @@
   <div class="flex justify-between items-start gap-2 w-full">
     <div class="glass-panel rounded-2xl px-3 py-2 pointer-events-auto max-w-[62vw]">
       <div class="flex items-center gap-3">
-        <div class="bg-amber-500 text-slate-950 rounded-lg px-2 py-0.5 text-[11px] font-black hud-font">LINE 12</div>
+        <div id="routeLabelBadge" class="bg-amber-500 text-slate-950 rounded-lg px-2 py-0.5 text-[11px] font-black hud-font"></div>
         <div class="leading-tight">
           <div class="text-[9px] uppercase font-bold text-slate-400">Next stop</div>
           <div id="hudNextStop" class="text-xs sm:text-sm font-black text-amber-400 hud-font truncate">—</div>
@@ -127,7 +127,7 @@
   <div class="flex flex-col gap-2 items-start pointer-events-auto mt-2" style="max-width:min(46vw,340px)">
     <div id="paPanel" class="glass-panel rounded-xl px-3 py-2 border-amber-500/30">
       <div class="text-[9px] font-black text-amber-400 tracking-widest">📢 PA ANNOUNCEMENT</div>
-      <div id="paText" class="text-[11px] sm:text-xs font-semibold text-white mt-0.5 leading-snug">Good morning. Welcome aboard Line 12 City Loop.</div>
+      <div id="paText" class="text-[11px] sm:text-xs font-semibold text-white mt-0.5 leading-snug">Good morning. Welcome aboard '+ROUTES[CURRENT_ROUTE].name+'.'+' First stop: '+stops[0].name+'.</div>
     </div>
     <div class="flex gap-2 flex-wrap">
       <div id="lampStopReq" class="lamp-off rounded-xl px-2.5 py-1.5 text-[10px] font-black border">🛑 STOP REQUESTED</div>
@@ -253,7 +253,7 @@
 <div id="startOverlay" class="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/88 backdrop-blur-md p-4 pointer-events-auto">
   <div class="glass-panel p-6 sm:p-7 rounded-3xl max-w-md w-full text-center flex flex-col items-center border border-emerald-500/30 shadow-[0_0_50px_rgba(16,185,129,0.18)]">
     <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-3xl mb-3 shadow-lg shadow-emerald-500/30">🚌</div>
-    <h1 class="hud-font text-2xl sm:text-3xl font-black text-white mb-1 tracking-wide">LINE 12 · CITY LOOP</h1>
+    <h1 class="hud-font text-2xl sm:text-3xl font-black text-white mb-1 tracking-wide" id="startRouteLabel">LINE 12</h1>
     <p class="text-xs text-slate-300 mb-5">Drive the 8-stop loop. Stop at the kerb, open the doors, board waiting passengers and drop them off at their stops.</p>
     <div class="bg-slate-900/80 rounded-xl p-3 w-full text-left mb-5 border border-slate-800 text-[11px] text-slate-300 space-y-1">
       <div>🎮 <b>W/S</b> (or ↑↓) gas &amp; brake · <b>A/D</b> (or ←→) steer · <b>Space</b> parking brake · <b>E</b> doors</div>
@@ -735,35 +735,79 @@ mergeInto(edgeG,edgeMat,false);
 /* =========================================================================
    4. ROUTE + STOPS
    ========================================================================= */
-const N_STOPS=8;
-function headingVec(h){return new THREE.Vector3(Math.sin(h),0,Math.cos(h));}
-function rightVec(h){return new THREE.Vector3(Math.cos(h),0,-Math.sin(h));}
+// Number of stops on the main route
+const STOP_COUNT=rawStops.length;
+// Multiple route configurations
+const ROUTES={
+  main: {
+    name: 'LINE 12 — CITY LOOP',
+    color: 0x0284c7,
+    stops: [
+      {name:'METRO TERMINAL', code:'MT', pos:new THREE.Vector3(-180,0,-135), h:0, pop:1.6, type:'terminal', dwell:45},
+      {name:'OLD QUARTER', code:'OQ', pos:new THREE.Vector3(-180,0,45), h:0, pop:1.0, type:'residential', dwell:25},
+      {name:'MUSEUM DISTRICT', code:'MD', pos:new THREE.Vector3(-90,0,135), h:Math.PI/2, pop:1.2, type:'cultural', dwell:30},
+      {name:'CITY PLAZA', code:'CP', pos:new THREE.Vector3(45,0,180), h:Math.PI/2, pop:1.8, type:'downtown', dwell:40},
+      {name:'FINANCIAL DIST', code:'FD', pos:new THREE.Vector3(135,0,180), h:Math.PI/2, pop:1.7, type:'business', dwell:35},
+      {name:'CONVENTION CENTER', code:'CC', pos:new THREE.Vector3(180,0,90), h:Math.PI, pop:1.4, type:'events', dwell:30},
+      {name:'UNIVERSITY', code:'UN', pos:new THREE.Vector3(180,0,-45), h:Math.PI, pop:1.2, type:'campus', dwell:40},
+      {name:'HARBOR BAY', code:'HB', pos:new THREE.Vector3(180,0,-135), h:Math.PI, pop:0.9, type:'waterfront', dwell:30},
+      {name:'STADIUM', code:'SD', pos:new THREE.Vector3(45,0,-180), h:-Math.PI/2, pop:1.0, type:'sports', dwell:35},
+      {name:'DOCKLANDS', code:'DL', pos:new THREE.Vector3(-45,0,-180), h:-Math.PI/2, pop:0.8, type:'industrial', dwell:25},
+      {name:'RIVERWALK', code:'RW', pos:new THREE.Vector3(-135,0,-180), h:-Math.PI/2, pop:1.1, type:'recreation', dwell:25},
+      {name:'CENTRAL STATION', code:'CS', pos:new THREE.Vector3(-180,0,-90), h:0, pop:1.5, type:'transport', dwell:40}
+    ]
+  },
+  express: {
+    name: 'LINE 12X — EXPRESS',
+    color: 0xf59e0b,
+    stops: [0, 3, 4, 6, 8, 11] // Terminal, Plaza, Financial, University, Stadium, Central
+  },
+  night: {
+    name: 'LINE 12N — NIGHT OWL',
+    color: 0x7c3aed,
+    stops: [0, 1, 3, 4, 7, 11] // Terminal, Old Quarter, Plaza, Financial, Harbor, Central
+  }
+};
 
-const rawStops=[
-  {name:'METRO TERMINAL', code:'MT', road:'v', line:-180, at:-135, h:0,           pop:1.6},
-  {name:'OLD QUARTER',    code:'OQ', road:'v', line:-180, at:  45, h:0,           pop:1.0},
-  {name:'CITY PLAZA',     code:'CP', road:'h', line: 180, at: -45, h: Math.PI/2,   pop:1.8},
-  {name:'FINANCIAL DIST', code:'FD', road:'h', line: 180, at: 135, h: Math.PI/2,   pop:1.7},
-  {name:'UNIVERSITY',     code:'UN', road:'v', line: 180, at:  45, h: Math.PI,     pop:1.2},
-  {name:'HARBOR BAY',     code:'HB', road:'v', line: 180, at:-135, h: Math.PI,     pop:0.9},
-  {name:'STADIUM',        code:'SD', road:'h', line:-180, at:  45, h:-Math.PI/2,   pop:1.0},
-  {name:'DOCKLANDS',      code:'DL', road:'h', line:-180, at:-135, h:-Math.PI/2,   pop:0.8}
-];
+const CURRENT_ROUTE='main';
+const rawStops=ROUTES[CURRENT_ROUTE].stops;
 const DOCK_OFF=9.9;
 const stops=rawStops.map((s,i)=>{
-  const centre=s.road==='v'?new THREE.Vector3(s.line,0,s.at):new THREE.Vector3(s.at,0,s.line);
+  const centre=s.pos.clone();
   const kerb=centre.clone().add(rightVec(s.h).multiplyScalar(DOCK_OFF));
   return {index:i,name:s.name,code:s.code,h:s.h,centre,pos:kerb,pop:s.pop,
+          type:s.type, dwell:s.dwell,
           queue:[],spawnT:1+Math.random()*6,servedCount:0,visited:false,loiterers:[]};
 });
 
-// --- route path (for the map) ---
+// --- realistic route path with curves ---
 const routePath=[];
-stops.forEach((s,i)=>{
-  const nxt=stops[(i+1)%N_STOPS];
-  routePath.push(s.centre.clone());
-  routePath.push(s.centre.clone().lerp(nxt.centre,0.5));
+const routeSegments=[];
+rawStops.forEach((s,i)=>{
+  const nxt=rawStops[(i+1)%rawStops.length];
+  const start=s.pos.clone();
+  const end=nxt.pos.clone();
+  const dir=end.clone().sub(start).normalize();
+  const dist=start.distanceTo(end);
+  
+  // Add waypoints for smooth curves at intersections
+  routePath.push(start.clone());
+  routeSegments.push({from:i, to:(i+1)%rawStops.length, dist, dir});
+  
+  // Add intermediate waypoints for curves
+  const segments=Math.max(3, Math.floor(dist/15));
+  for(let k=1;k<segments;k++){
+    const t=k/segments;
+    const pt=start.clone().lerp(end, t);
+    // Add slight curve at midpoints
+    if(t>0.3 && t<0.7){
+      const perp=new THREE.Vector3(-dir.z, 0, dir.x);
+      pt.addScaledVector(perp, Math.sin(t*Math.PI)*3);
+    }
+    routePath.push(pt);
+  }
 });
+routePath.push(rawStops[0].pos.clone()); // Close the loop
 
 // --- stop shelters, signs, bay paint ---
 const stopGroup=new THREE.Group();scene.add(stopGroup);
@@ -778,7 +822,7 @@ function signTexture(stop){
     g.fillStyle='#f8fafc';g.fillRect(0,0,w,h);
     g.fillStyle='#0284c7';g.fillRect(0,0,w,34);
     g.fillStyle='#fff';g.font='bold 22px Arial';g.textAlign='center';
-    g.fillText('LINE 12',w/2,25);
+    g.fillText(ROUTES[CURRENT_ROUTE].name.split(' — ')[0],w/2,25);
     g.fillStyle='#0f172a';g.font='bold 20px Arial';
     const nm=stop.name.length>16?stop.name.slice(0,16):stop.name;
     g.fillText(nm,w/2,64);
@@ -1273,7 +1317,7 @@ const decalTex=makeCanvasTex((g,w,h)=>{
   g.fillStyle='#e0f2fe';g.font='bold 66px Arial';g.textAlign='center';
   g.fillText('CITY TRANSIT',w/2,90);
   g.fillStyle='#fbbf24';g.font='bold 44px Arial';
-  g.fillText('LINE 12 · 7742',w/2,150);
+  g.fillText(ROUTES[CURRENT_ROUTE].name+' · B12',w/2,150);
   g.fillStyle='#94a3b8';g.font='30px Arial';
   g.fillText('LOW FLOOR · STEP-FREE',w/2,200);
 },512,256);
@@ -1296,7 +1340,8 @@ grab.position.set(1.22,1.75,3.85);shell.add(grab);
    ========================================================================= */
 function spawnPassengerAt(stopIdx){
   const stop=stops[stopIdx];
-  const nxt=(stopIdx+1+Math.floor(Math.random()*(N_STOPS-2)))%N_STOPS;
+  const numStops=stops.length;
+  const nxt=(stopIdx+1+Math.floor(Math.random()*(numStops-2)))%numStops;
   const pax=makePerson({scale:1.05});
   const slot=stop.queue.length;
   const r=rightVec(stop.h);
@@ -1309,7 +1354,7 @@ function spawnPassengerAt(stopIdx){
   pax.group.position.copy(base);
   pax.group.rotation.y=stop.h+Math.PI;
   scene.add(pax.group);
-  const fare=2.75+(((nxt-stopIdx+N_STOPS)%N_STOPS)*0.45);
+  const fare=2.75+(((nxt-stopIdx+numStops)%numStops)*0.45);
   stop.queue.push({mesh:pax,stopIdx,destIdx:nxt,fare,state:'waiting',t:Math.random()*3,
     patience:16+Math.random()*22,mood:1,wait:0});
 }
@@ -1829,9 +1874,10 @@ const ui={
   farebox:$('fareboxText'),fine:$('fineText'),pop:$('popText'),limit:$('speedLimitTag'),
   mood:$('hudMoodText'),demand:$('hudDemandText'),
   doorLabel:$('doorLabel'),camName:$('camName'),weatherIcon:$('weatherIcon'),
-  ghostBox:ghost
+  ghostBox:ghost,
+  routeLabel:$('routeLabel')
 };
-for(let i=0;i<N_STOPS;i++){
+for(let i=0;i<stops.length;i++){
   const d=document.createElement('div');
   d.className='w-1.5 h-3 rounded-sm bg-slate-600';
   ui.prog.appendChild(d);
@@ -1847,9 +1893,13 @@ function announce(msg){
   audio.beep();
 }
 function refreshHUD(){
-  const t=stops[S.targetStop];
-  ui.next.textContent=t.name;
-  const d=Math.round(Math.hypot(bus.position.x-t.pos.x,bus.position.z-t.pos.z));
+   const t=stops[S.targetStop];
+   ui.next.textContent=t.name;
+   ui.routeLabelBadge.textContent=ROUTES[CURRENT_ROUTE].name.split(' — ')[0];
+   const routeColors={main:'#0284c7',express:'#f59e0b',night:'#7c3aed'};
+   ui.routeLabelBadge.style.backgroundColor=routeColors[CURRENT_ROUTE];
+   ui.routeLabelBadge.style.color='#fff';
+   const d=Math.round(Math.hypot(bus.position.x-t.pos.x,bus.position.z-t.pos.z));
   ui.dist.textContent=d+' m';
   ui.cash.textContent=fmtMoney(S.cash);
   ui.pax.textContent=onboard.length+'/'+CFG.capacity;
@@ -1866,7 +1916,7 @@ function refreshHUD(){
   const waiting=stops.reduce((a,s)=>a+s.queue.length,0);
   ui.pop.textContent=(walkers.length+waiting+onboard.length+leavingPax.length);
   ui.clock.textContent=fmtClock(S.shiftMin);
-  const nxtIdx=(S.targetStop+1)%N_STOPS;
+  const nxtIdx=(S.targetStop+1)%stops.length;
   [...ui.prog.children].forEach((c,i)=>{
     c.className='w-1.5 h-3 rounded-sm '+
       (i===S.targetStop?'bg-amber-400 shadow-[0_0_8px_#f59e0b]':(stops[i].visited?'bg-sky-700':'bg-slate-600'));
@@ -1899,6 +1949,7 @@ addEventListener('keydown',e=>{
   if(k==='b')stopBell();
   if(k==='m')toggleManifest();
   if(k==='l')$('btnHeadlights').click();
+  if(k==='r')cycleRoute();
 });
 addEventListener('keyup',e=>{
   const k=e.key.toLowerCase();
@@ -1987,7 +2038,7 @@ $('btnStartGame').addEventListener('click',()=>{
   $('startOverlay').classList.add('hidden');
   S.shiftRunning=true;
   shiftGear('D');S.handbrake=false;
-  announce('Good morning drivers. Line 12 City Loop. First stop: '+stops[S.targetStop].name+'.');
+  announce('Good morning drivers. '+ROUTES[CURRENT_ROUTE].name+'. First stop: '+stops[S.targetStop].name+'.');
   toast('Proceed to '+stops[S.targetStop].name+' and stop at the kerb');
 });
 
@@ -2024,6 +2075,66 @@ function soundHorn(on){
 function stopBell(){
   if(!S.shiftRunning)return;
   audio.bell();toast('Stop requested for '+stops[S.targetStop].name,1200);
+}
+function cycleRoute(){
+  if(!S.shiftRunning)return;
+  const keys=Object.keys(ROUTES);
+  const idx=keys.indexOf(CURRENT_ROUTE);
+  const next=(idx+1)%keys.length;
+  const newRoute=keys[next];
+  // Can only change at a stop
+  const atStop=S.docked>=0;
+  if(!atStop){
+    toast('Can only switch routes at a stop',1800);
+    return;
+  }
+  // Reset for new route
+  CURRENT_ROUTE=newRoute;
+  rawStops=ROUTES[CURRENT_ROUTE].stops;
+  // Rebuild stops array
+  stops.length=0;
+  rawStops.forEach((s,i)=>{
+    const centre=s.pos.clone();
+    const kerb=centre.clone().add(rightVec(s.h).multiplyScalar(DOCK_OFF));
+    stops.push({index:i,name:s.name,code:s.code,h:s.h,centre,pos:kerb,pop:s.pop,
+            type:s.type, dwell:s.dwell,
+            queue:[],spawnT:1+Math.random()*6,servedCount:0,visited:false,loiterers:[]});
+  });
+  // Rebuild routePath
+  routePath.length=0;
+  routeSegments.length=0;
+  rawStops.forEach((s,i)=>{
+    const nxt=rawStops[(i+1)%rawStops.length];
+    const start=s.pos.clone();
+    const end=nxt.pos.clone();
+    const dir=end.clone().sub(start).normalize();
+    const dist=start.distanceTo(end);
+    routePath.push(start.clone());
+    routeSegments.push({from:i, to:(i+1)%rawStops.length, dist, dir});
+    const segments=Math.max(3, Math.floor(dist/15));
+    for(let k=1;k<segments;k++){
+      const t=k/segments;
+      const pt=start.clone().lerp(end, t);
+      if(t>0.3 && t<0.7){
+        const perp=new THREE.Vector3(-dir.z, 0, dir.x);
+        pt.addScaledVector(perp, Math.sin(t*Math.PI)*3);
+      }
+      routePath.push(pt);
+    }
+  });
+  routePath.push(rawStops[0].pos.clone());
+  // Reset progress
+  S.targetStop=0;
+  stops.forEach(s=>{s.visited=false;s.servedCount=0;});
+  // Update progress bar
+  ui.prog.innerHTML='';
+  for(let i=0;i<stops.length;i++){
+    const d=document.createElement('div');
+    d.className='w-1.5 h-3 rounded-sm bg-slate-600';
+    ui.prog.appendChild(d);
+  }
+  announce('Route changed to '+ROUTES[CURRENT_ROUTE].name+'. First stop: '+stops[0].name+'.');
+  toast('Switched to '+ROUTES[CURRENT_ROUTE].name,2000);
 }
 function setHeadlights(on){
   S.headlights=on;
@@ -2215,10 +2326,10 @@ function finishDwell(forced){
   const onTime=!forced&&S.dwellT<=12+(S.dwellTotal||0)*3.4;
   if(onTime){S.punctualStops=(S.punctualStops||0)+1;}
   else {toast('⏱ Long dwell time — passengers are complaining (-$4)');S.fines+=4;}
-  S.targetStop=(S.targetStop+1)%N_STOPS;
+  S.targetStop=(S.targetStop+1)%stops.length;
   S.docked=-1;S.annA=false;S.annB=false;
   const nxt=stops[S.targetStop];
-  announce('This stop is '+stop.name+'. Next stop: '+nxt.name+'. Thank you for riding Line 12.');
+  announce('This stop is '+stop.name+'. Next stop: '+nxt.name+'. Thank you for riding '+ROUTES[CURRENT_ROUTE].name.split(' — ')[0]+'.');
   toast('✓ '+stop.name+' complete — next: '+nxt.name,2600);
   if(S.doorsOpen){toast('Close the doors (E) before driving',1800);}
 }
@@ -2483,7 +2594,7 @@ if(onboard.length>=CFG.capacity&&S.dwellQueue.length){
 const leavingPax=[];
 function announcePassenger(n){
   const dests=[...new Set(onboard.map(p=>p.destIdx))].length;
-  announce(n+' passengers on board. Next stop: '+stops[(S.targetStop+1)%N_STOPS].name+'.');
+  announce(n+' passengers on board. Next stop: '+stops[(S.targetStop+1)%stops.length].name+'.');
 }
 
 /* =========================================================================
@@ -2759,6 +2870,10 @@ function startShift(){
   onboard.length=0;
   stops.forEach(s=>{s.visited=false;s.servedCount=0;});
   ui.dwellBar.classList.add('hidden');ui.lampDwell.classList.add('hidden');
+  // Update start overlay label
+  $('startRouteLabel').textContent=ROUTES[CURRENT_ROUTE].name;
+  // Update PA text
+  $('paText').textContent='Good morning. Welcome aboard '+ROUTES[CURRENT_ROUTE].name+'. First stop: '+stops[0].name+'.';
   shiftGear('D');S.handbrake=false;
   announce('Shift started. First stop: '+stops[0].name+'. Drive carefully.');
   toast('Drive to '+stops[0].name,2600);
