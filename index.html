@@ -2281,6 +2281,7 @@ $('btnRestart').addEventListener('click',()=>{$('resultsOverlay').classList.add(
 $('btnStartGame').addEventListener('click',()=>{
   audio.init();audio.resume();audio.starter();
   $('startOverlay').classList.add('hidden');
+  startShift();
   // PWA service worker registration
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').then(reg=>{
