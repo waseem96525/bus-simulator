@@ -468,7 +468,7 @@ renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.08;
+renderer.toneMappingExposure=0.86;
 renderer.physicallyCorrectLights=true;
 container.appendChild(renderer.domElement);
 
@@ -479,9 +479,9 @@ if (typeof THREE.EffectComposer !== 'undefined') {
   const renderPass = new THREE.RenderPass(scene, camera);
   composer.addPass(renderPass);
   bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.75, 0.65, 0.35);
-  bloomPass.strength = 0.65;
-  bloomPass.radius = 0.65;
-  bloomPass.threshold = 0.1;
+  bloomPass.strength = 0.14;
+  bloomPass.radius = 0.28;
+  bloomPass.threshold = 0.84;
   composer.addPass(bloomPass);
 }
 
@@ -489,6 +489,7 @@ if (typeof THREE.EffectComposer !== 'undefined') {
 const skyCanvas=document.createElement('canvas');skyCanvas.width=8;skyCanvas.height=256;
 const skyCtx=skyCanvas.getContext('2d');
 const skyTex=new THREE.CanvasTexture(skyCanvas);
+skyTex.encoding=THREE.sRGBEncoding;
 const skyDome=new THREE.Mesh(new THREE.SphereGeometry(720,24,16),
   new THREE.MeshBasicMaterial({map:skyTex,side:THREE.BackSide,fog:false,depthWrite:false}));
 skyDome.renderOrder=-1;scene.add(skyDome);
@@ -503,11 +504,11 @@ function drawSky(top,bot){
 }
 const SKY_KEYS=[
   {h:5.5, top:0x070c18,bot:0x2a3a55,sun:0.02,amb:0.18,dark:1},
-  {h:6.8, top:0x3f6ea8,bot:0xf0a868,sun:0.45,amb:0.42,dark:1},
-  {h:8.5, top:0x7fb6e6,bot:0xdbeafe,sun:1.05,amb:0.68,dark:0},
-  {h:13.0,top:0x6fb2e8,bot:0xe8f4ff,sun:1.22,amb:0.74,dark:0},
-  {h:16.9,top:0x8fb6dc,bot:0xfddf9a,sun:0.95,amb:0.62,dark:0},
-  {h:18.3,top:0x3c4f80,bot:0xf97316,sun:0.34,amb:0.34,dark:1},
+  {h:6.8, top:0x354b61,bot:0x9aabba,sun:0.1,amb:0.42,dark:1},
+  {h:8.5, top:0x5c7892,bot:0xb1c1cf,sun:0.18,amb:0.68,dark:0},
+  {h:13.0,top:0x63819b,bot:0xbacbd8,sun:0.24,amb:0.74,dark:0},
+  {h:16.9,top:0x788a9a,bot:0xc4bba7,sun:0.18,amb:0.62,dark:0},
+  {h:18.3,top:0x3c4f68,bot:0x8c786b,sun:0.08,amb:0.34,dark:1},
   {h:19.4,top:0x070c18,bot:0x16233c,sun:0.05,amb:0.22,dark:1}
 ];
 const _c1=new THREE.Color(),_c2=new THREE.Color();
@@ -544,7 +545,7 @@ function applyTimeOfDay(force){
     scene.background.setHex(horizon);
     scene.fog.color.setHex(horizon);
     scene.fog.density=hour>6.4&&hour<18.6?0.0021:0.0034;
-    sunLight.intensity=k.sun;
+    sunLight.intensity=k.sun*0.12;
     sunLight.color.setHex(k.sun<0.6?0xffb877:0xfff6e5);
     hemi.intensity=k.amb;
     fillLight.intensity=k.amb*0.3;
@@ -556,7 +557,7 @@ function applyTimeOfDay(force){
   sunLight.position.set(xz*180,Math.max(20,y*180),70);
   sunDisc.position.set(xz*560,Math.max(30,y*560),-320);
   sunDisc.material.color.setHex(raining?0x8ea3b8:(y>0.08?0xfff3c4:0xdfe8ff));
-  sunDisc.visible=y>0.02||raining;
+  sunDisc.visible=false;
   
   // Dynamic fog density based on time of day
   if(k.dark&&!raining){
