@@ -2062,8 +2062,7 @@ $('btnRestart').addEventListener('click',()=>{$('resultsOverlay').classList.add(
 $('btnStartGame').addEventListener('click',()=>{
   audio.init();audio.resume();audio.starter();
   $('startOverlay').classList.add('hidden');
-
-  // PWA install prompt
+  // PWA service worker registration
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').then(reg=>{
       console.log('Service Worker registered:', reg);
@@ -2090,11 +2089,6 @@ $('btnInstall').addEventListener('click',async()=>{
 window.addEventListener('appinstalled',()=>{
   $('btnInstall').classList.add('hidden');
   toast('Game installed!',1500);
-});
-  S.shiftRunning=true;
-  shiftGear('D');S.handbrake=false;
-  announce('Good morning drivers. '+ROUTES[CURRENT_ROUTE].name+'. First stop: '+stops[S.targetStop].name+'.');
-  toast('Proceed to '+stops[S.targetStop].name+' and stop at the kerb');
 });
 
 /* =========================================================================
