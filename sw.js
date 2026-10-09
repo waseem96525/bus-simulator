@@ -1,5 +1,5 @@
 // Service Worker for Bus Simulator PWA
-const CACHE_NAME='bus-simulator-v1';
+const CACHE_NAME='bus-simulator-v2';
 const urlsToCache=[
   '/',
   '/index.html',
