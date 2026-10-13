@@ -186,6 +186,8 @@
       <div class="flex gap-1.5 flex-wrap justify-end">
         <button id="btnInstall" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-emerald-300 font-bold hidden">⬇ Install</button>
         <button id="btnCam" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-[11px] text-white font-bold">📷 <span id="camName">Chase</span></button>
+        <button id="btnRearView" aria-label="Toggle rear camera view" aria-pressed="false" title="Toggle rear view (V)" class="btn-action glass-panel w-8 h-8 rounded-lg text-white font-black">↶</button>
+        <button id="btnResetCamera" aria-label="Reset camera view" title="Reset camera view" class="btn-action glass-panel w-8 h-8 rounded-lg text-white font-black">⟲</button>
         <button id="btnCameraZoomOut" aria-label="Zoom camera out" title="Zoom camera out" class="btn-action glass-panel w-8 h-8 rounded-lg text-white font-black">−</button>
         <button id="btnCameraZoomIn" aria-label="Zoom camera in" title="Zoom camera in" class="btn-action glass-panel w-8 h-8 rounded-lg text-white font-black">+</button>
         <button id="btnWeather" class="btn-action glass-panel px-2 py-1.5 rounded-xl text-xs text-white font-bold"><span id="weatherIcon">☀️</span></button>
@@ -349,7 +351,7 @@
     </select>
     <div class="bg-slate-900/80 rounded-xl p-3 w-full text-left mb-5 border border-slate-800 text-[11px] text-slate-300 space-y-1">
       <div>🎮 <b>W/S</b> (or ↑↓) gas &amp; brake · <b>A/D</b> (or ←→) steer · <b>Space</b> parking brake · <b>E</b> doors</div>
-      <div>🔔 <b>B</b> stop-request bell · <b>C</b> camera · <b>−/+ buttons</b> camera zoom · <b>H</b> horn</div>
+      <div>🔔 <b>B</b> stop-request bell · <b>C</b> cycle camera · <b>V</b> rear view · <b>−/+ buttons</b> zoom · <b>H</b> horn</div>
       <div>📱 Drag the wheel, use ◀▶ buttons, or hold the on-screen pedals.</div>
       <div>⚠️ Speed limit 50 km/h. Hard braking, collisions and red lights cost you money.</div>
       <div>💡 Press <b>C</b> for the cabin view to watch passengers board and sit down.</div>
@@ -390,19 +392,20 @@ class BusAudioEngine{
       this.ctx=new AC();
       this.master=this.ctx.createGain();this.master.gain.value=0.35;this.master.connect(this.ctx.destination);
 
-      this.o1=this.ctx.createOscillator();this.o1.type='sawtooth';this.o1.frequency.value=40;
-      this.o2=this.ctx.createOscillator();this.o2.type='triangle';this.o2.frequency.value=80;
-      this.filt=this.ctx.createBiquadFilter();this.filt.type='lowpass';this.filt.frequency.value=220;
-      this.engGain=this.ctx.createGain();this.engGain.gain.value=0.08;
+      this.o1=this.ctx.createOscillator();this.o1.type='triangle';this.o1.frequency.value=32;
+      this.o2=this.ctx.createOscillator();this.o2.type='sine';this.o2.frequency.value=48;
+      this.filt=this.ctx.createBiquadFilter();this.filt.type='lowpass';this.filt.frequency.value=135;
+      this.engGain=this.ctx.createGain();this.engGain.gain.value=0.012;
       this.o1.connect(this.filt);this.o2.connect(this.filt);this.filt.connect(this.engGain);this.engGain.connect(this.master);
       this.o1.start();this.o2.start();
 
-      this.turbo=this.ctx.createOscillator();this.turbo.type='sine';this.turbo.frequency.value=900;
-      this.turboGain=this.ctx.createGain();this.turboGain.gain.value=0.00005;
-      this.turbo.connect(this.turboGain);this.turboGain.connect(this.master);this.turbo.start();
+      this.turbo=this.ctx.createOscillator();this.turbo.type='sine';this.turbo.frequency.value=260;
+      this.turboFilter=this.ctx.createBiquadFilter();this.turboFilter.type='lowpass';this.turboFilter.frequency.value=380;
+      this.turboGain=this.ctx.createGain();this.turboGain.gain.value=0.00001;
+      this.turbo.connect(this.turboFilter);this.turboFilter.connect(this.turboGain);this.turboGain.connect(this.master);this.turbo.start();
 
       this.air=this.ctx.createGain();this.air.gain.value=0.0;
-      this.airF=this.ctx.createBiquadFilter();this.airF.type='lowpass';this.airF.frequency.value=600;
+      this.airF=this.ctx.createBiquadFilter();this.airF.type='lowpass';this.airF.frequency.value=320;
       const airSrc=this.ctx.createBufferSource();
       const buf=this.ctx.createBuffer(1,this.ctx.sampleRate*2,this.ctx.sampleRate);
       const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
@@ -414,14 +417,15 @@ class BusAudioEngine{
   }
 engine(speedFrac,throttle){
       if(!this.ready)return;const t=this.ctx.currentTime;
-      // Quieter engine for bus simulation
-      const f=32+speedFrac*30+(throttle?8:0);
-      this.o1.frequency.setTargetAtTime(f,t,.09);
-      this.o2.frequency.setTargetAtTime(f*2,t,.09);
-      this.filt.frequency.setTargetAtTime(120+speedFrac*200,t,.12);
-      this.turboGain.gain.setTargetAtTime(throttle?0.02:0.0001,t,.12);
-      this.turbo.frequency.setTargetAtTime(400+speedFrac*800,t,.12);
-      this.air.gain.setTargetAtTime(clamp(speedFrac,0,1)*0.025,t,.15);
+      const speed=clamp(speedFrac,0,1);
+      const f=28+speed*22+(throttle?4:0);
+      this.o1.frequency.setTargetAtTime(f,t,.18);
+      this.o2.frequency.setTargetAtTime(f*1.5,t,.18);
+      this.filt.frequency.setTargetAtTime(115+speed*110,t,.2);
+      this.engGain.gain.setTargetAtTime(0.005+speed*0.009+(throttle?0.004:0),t,.24);
+      this.turboGain.gain.setTargetAtTime(throttle?0.0025:0.00001,t,.25);
+      this.turbo.frequency.setTargetAtTime(180+speed*170,t,.25);
+      this.air.gain.setTargetAtTime(speed*0.003,t,.3);
     }
   blip(freq,dur,type,vol){
     if(!this.ready)return;
@@ -2640,6 +2644,7 @@ addEventListener('keydown',e=>{
   if(k===' ')toggleHandbrake();
   if(k==='e')toggleDoors();
   if(k==='c')cycleCamera();
+  if(k==='v'&&!e.repeat)toggleRearView();
   if(k==='h')soundHorn(true);
   if(k==='b')stopBell();
   if(k==='m')toggleManifest();
@@ -2715,6 +2720,8 @@ $('btnHandbrake').addEventListener('click',toggleHandbrake);
 $('btnDoors').addEventListener('click',toggleDoors);
 $('btnHeadlights').addEventListener('click',()=>setHeadlights(!S.headlights));
 $('btnCam').addEventListener('click',cycleCamera);
+$('btnRearView').addEventListener('click',()=>toggleRearView());
+$('btnResetCamera').addEventListener('click',resetCamera);
 $('btnWeather').addEventListener('click',cycleWeather);
 $('btnSteerMode').addEventListener('click',()=>{
   S.steerMode=S.steerMode==='wheel'?'buttons':'wheel';
@@ -2818,13 +2825,33 @@ function setHeadlights(on){
   hlR.material.color.copy(hlL.material.color);
   if(!on&&S.dark){toast('Headlights OFF (night driving — keep them on!)');}
 }
-const CAM_NAMES=['Chase','Cabin','Kerb','Wide'];
+const CAM_NAMES=['Chase','Cabin','Kerb','Wide','Front'];
 function cycleCamera(){
   S.camera=(S.camera+1)%CAM_NAMES.length;
+  if(S.camera===1&&S.rearView)toggleRearView(false,false);
   ui.camName.textContent=CAM_NAMES[S.camera];
   toast('Camera: '+CAM_NAMES[S.camera],1100);
 }
 let cameraZoom=1;
+S.rearView=false;
+function toggleRearView(enabled,notify=true){
+  S.rearView=enabled===undefined?!S.rearView:enabled;
+  if(S.rearView&&S.camera===1){
+    S.camera=0;
+    ui.camName.textContent=CAM_NAMES[S.camera];
+  }
+  const button=$('btnRearView');
+  button.setAttribute('aria-pressed',String(S.rearView));
+  button.classList.toggle('text-amber-300',S.rearView);
+  if(notify)toast(S.rearView?'Rear camera view':'Forward camera view',1000);
+}
+function resetCamera(){
+  cameraZoom=1;
+  if(S.rearView)toggleRearView(false,false);
+  S.camera=0;
+  ui.camName.textContent=CAM_NAMES[S.camera];
+  toast('Camera view reset',1000);
+}
 function adjustCameraZoom(amount){
   cameraZoom=clamp(cameraZoom+amount,0.65,1.55);
   toast('Camera zoom: '+Math.round(100/cameraZoom)+'%',900);
@@ -3340,22 +3367,27 @@ function updateCamera(dt){
   let want=new THREE.Vector3(),look=new THREE.Vector3();
   const p=bus.position;
   const travelDir=(S.gear==='R'||S.speed< -0.5)?-1:1;
+  const viewDir=travelDir*(S.rearView?-1:1);
   const zoom=S.camera===1?1:cameraZoom;
   switch(camModes[S.camera]){
     case 'chase':
-      want.set(p.x-f.x*17*zoom*travelDir, 8.2*zoom, p.z-f.z*17*zoom*travelDir);
-      look.set(p.x+f.x*8*travelDir,2.2,p.z+f.z*8*travelDir);
+      want.set(p.x-f.x*17*zoom*viewDir, 8.2*zoom, p.z-f.z*17*zoom*viewDir);
+      look.set(p.x+f.x*8*viewDir,2.2,p.z+f.z*8*viewDir);
       break;
     case 'cabin':
       want.set(p.x+r.x*-0.72+f.x*3.4, 2.75, p.z+r.z*-0.72+f.z*3.4);
       look.set(p.x+f.x*22, 2.0, p.z+f.z*22);
       break;
     case 'kerb':
-      want.set(p.x+r.x*10*zoom+f.x*7.5*zoom*travelDir, 3.4*zoom, p.z+r.z*10*zoom+f.z*7.5*zoom*travelDir);
+      want.set(p.x+r.x*10*zoom+f.x*7.5*zoom*viewDir, 3.4*zoom, p.z+r.z*10*zoom+f.z*7.5*zoom*viewDir);
       look.set(p.x+r.x*1.2, 1.8, p.z+r.z*1.2);
       break;
+    case 'front':
+      want.set(p.x+f.x*14*zoom*viewDir, 4.8*zoom, p.z+f.z*14*zoom*viewDir);
+      look.set(p.x,2.2,p.z);
+      break;
     default:
-      want.set(p.x-f.x*26*zoom*travelDir, 16*zoom, p.z-f.z*26*zoom*travelDir);
+      want.set(p.x-f.x*26*zoom*viewDir, 16*zoom, p.z-f.z*26*zoom*viewDir);
       look.set(p.x,1.6,p.z);
       break;
   }
