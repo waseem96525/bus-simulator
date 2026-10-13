@@ -1,10 +1,22 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const mime = require('mime').default;
+const mimeLib = require('mime');
+const mime = mimeLib.default || mimeLib;
 
 const PORT = 8000;
 const DIR = process.cwd();
+
+function getMimeType(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (mime && typeof mime.getType === 'function') {
+    return mime.getType(ext) || 'text/plain';
+  }
+  if (mime && mime.Mime && typeof mime.Mime.getType === 'function') {
+    return mime.Mime.getType(ext) || 'text/plain';
+  }
+  return 'text/plain';
+}
 
 const server = http.createServer((req, res) => {
   // Serve the 192px icon as favicon when favicon.ico is requested
@@ -43,8 +55,7 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    const ext = path.extname(filePath).toLowerCase();
-    const contentType = mime.getType(ext) || 'text/plain';
+    const contentType = getMimeType(filePath);
     res.setHeader('Content-Type', contentType);
     res.end(content, 'utf-8');
   });

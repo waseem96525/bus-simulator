@@ -472,18 +472,21 @@ scene.fog=new THREE.FogExp2(0x8fc7e8,0.0022);
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,0.1,2400);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const lowPowerMode = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+  (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+const maxPixelRatio = lowPowerMode ? 1.25 : 1.75;
+renderer.setPixelRatio(Math.min(devicePixelRatio, maxPixelRatio));
 renderer.outputEncoding=THREE.sRGBEncoding;
-renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=!lowPowerMode;
+renderer.shadowMap.type=lowPowerMode ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=0.86;
+renderer.toneMappingExposure=lowPowerMode ? 0.78 : 0.86;
 renderer.physicallyCorrectLights=true;
 container.appendChild(renderer.domElement);
 
 let composer = null;
 let bloomPass = null;
-if (typeof THREE.EffectComposer !== 'undefined') {
+if (typeof THREE.EffectComposer !== 'undefined' && !lowPowerMode) {
   composer = new THREE.EffectComposer(renderer);
   const renderPass = new THREE.RenderPass(scene, camera);
   composer.addPass(renderPass);
@@ -493,6 +496,17 @@ if (typeof THREE.EffectComposer !== 'undefined') {
   bloomPass.threshold = 0.84;
   composer.addPass(bloomPass);
 }
+
+function updateRendererQuality(){
+  if(!renderer)return;
+  const ratio = Math.min(window.devicePixelRatio || 1, lowPowerMode ? 1.25 : 1.75);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(ratio);
+  if (composer) composer.setSize(window.innerWidth, window.innerHeight);
+}
+window.addEventListener('resize', updateRendererQuality, { passive: true });
 
 /* ---------- sky dome (gradient + sun/moon disc, driven by the clock) ---------- */
 const skyCanvas=document.createElement('canvas');skyCanvas.width=8;skyCanvas.height=256;
