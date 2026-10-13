@@ -522,7 +522,7 @@ renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.shadowMap.enabled=!lowPowerMode;
 renderer.shadowMap.type=lowPowerMode ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=lowPowerMode ? 0.78 : 0.86;
+renderer.toneMappingExposure=lowPowerMode ? 0.82 : 0.92;
 renderer.physicallyCorrectLights=true;
 container.appendChild(renderer.domElement);
 
@@ -533,9 +533,9 @@ if (typeof THREE.EffectComposer !== 'undefined' && !lowPowerMode) {
   const renderPass = new THREE.RenderPass(scene, camera);
   composer.addPass(renderPass);
   bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.75, 0.65, 0.35);
-  bloomPass.strength = 0.14;
-  bloomPass.radius = 0.28;
-  bloomPass.threshold = 0.84;
+  bloomPass.strength = 0.18;
+  bloomPass.radius = 0.32;
+  bloomPass.threshold = 0.82;
   composer.addPass(bloomPass);
 }
 
@@ -2750,7 +2750,7 @@ const rain=(function(){
   const m=new THREE.PointsMaterial({color:0xaaccee,size:0.28,transparent:true,opacity:.6});
   const p=new THREE.Points(g,m);p.visible=false;scene.add(p);
   
-  // wind variation for more natural rain movement
+  p.userData.directions=dirs;
   p.windT=0;
   return p;
 })();
@@ -3201,22 +3201,34 @@ function updateCamera(dt){
   camera.lookAt(look);
 }
 
+const rideState={
+  height:0,heightVelocity:0,
+  pitch:0,pitchVelocity:0,
+  roll:0,rollVelocity:0
+};
+function updateRideSpring(positionKey,velocityKey,target,dt,frequency,damping=0.88){
+  const omega=2*Math.PI*frequency;
+  const acceleration=(target-rideState[positionKey])*omega*omega-2*damping*omega*rideState[velocityKey];
+  rideState[velocityKey]+=acceleration*dt;
+  rideState[positionKey]+=rideState[velocityKey]*dt;
+}
+
 function updateDriving(dt){
   // steering: digital keys / touch buttons ALWAYS work; the wheel adds analog trim
-  let digital=0;
-  if(IN.left&&!IN.right)digital=S.maxSteer;
-  if(IN.right&&!IN.left)digital=-S.maxSteer;
-  const rate=1-Math.exp(-dt*5.5);
-  if(digital!==0){
-    wheelAngle=(digital/S.maxSteer)*2.6;IN.wheel=wheelAngle/2.6;
+  let steerInput=0;
+  if(IN.left&&!IN.right)steerInput=1;
+  if(IN.right&&!IN.left)steerInput=-1;
+  if(steerInput!==0){
+    wheelAngle=steerInput*2.6;IN.wheel=wheelAngle/2.6;
     virtualWheel.style.transform=`rotate(${wheelAngle}rad)`;
-    S.steerAngle=lerp(S.steerAngle,digital,rate);
   }else if(S.steerMode==='wheel'){
     if(!touchingWheel){wheelAngle*=Math.pow(0.005,dt);IN.wheel=wheelAngle/2.6;virtualWheel.style.transform=`rotate(${wheelAngle}rad)`;}
-    S.steerAngle=lerp(S.steerAngle,IN.wheel*S.maxSteer,rate);
-  }else{
-    S.steerAngle=lerp(S.steerAngle,0,rate);
+    steerInput=IN.wheel;
   }
+  const speedFraction=clamp(Math.abs(S.speed)/S.maxSpeed,0,1);
+  const steeringLimit=S.maxSteer*(1-0.58*speedFraction);
+  const steeringRate=1-Math.exp(-dt*5.5);
+  S.steerAngle=lerp(S.steerAngle,steerInput*steeringLimit,steeringRate);
   steerPivots.forEach(p=>p.rotation.y=S.steerAngle);
   cockpitWheel.rotation.z=-S.steerAngle*3.2;
 
@@ -3227,15 +3239,15 @@ function updateDriving(dt){
   const prev=S.speed;
   const mass=1+onboard.length/CFG.capacity*0.35;
   if(S.gear==='D'){
-    if(throttle)S.speed+=clamp(16/mass,8,16)*dt*(1-S.speed/S.maxSpeed*0.82);
+    if(throttle)S.speed+=13/mass*dt*(1-S.speed/S.maxSpeed*0.82);
     else S.speed=Math.max(0,S.speed-3.4*dt);
     if(S.speed>S.maxSpeed)S.speed=S.maxSpeed;
-    if(braking)S.speed=Math.max(0,S.speed-24*dt);
+    if(braking)S.speed=Math.max(0,S.speed-17*dt);
     if(S.doorsOpen&&S.speed>0)S.speed=Math.max(0,S.speed-30*dt);
   }else if(S.gear==='R'){
-    if(throttle)S.speed=Math.max(-S.revMax,S.speed-16*dt);
+    if(throttle)S.speed=Math.max(-S.revMax,S.speed-10/mass*dt);
     else S.speed=Math.min(0,S.speed+4*dt);
-    if(braking)S.speed=Math.min(0,S.speed+22*dt);
+    if(braking)S.speed=Math.min(0,S.speed+17*dt);
   }else{
     S.speed=Math.max(0,S.speed-9*dt);S.speed=Math.min(0,S.speed+9*dt);
   }
@@ -3257,10 +3269,11 @@ function updateDriving(dt){
 
   // motion
   const v=(S.speed*1000)/3600;
+  const longitudinalAcceleration=(S.speed-prev)/(3.6*Math.max(dt,0.0001));
+  let yawRate=0;
   if(Math.abs(v)>0.005){
-    const steerAuthority=1-0.3*clamp(Math.abs(S.speed)/CFG.limit,0,1);
-    const turn=(v/8.5)*clamp(S.steerAngle*steerAuthority,-0.6,0.6);
-    S.heading+=turn*dt;
+    yawRate=(v/6.2)*Math.tan(clamp(S.steerAngle*0.72,-0.42,0.42));
+    S.heading+=yawRate*dt;
     bus.rotation.y=S.heading;
     bus.position.x+=Math.sin(S.heading)*v*dt;
     bus.position.z+=Math.cos(S.heading)*v*dt;
@@ -3276,23 +3289,18 @@ function updateDriving(dt){
     const roll=(v*dt)/0.58;
     spinWheels.forEach(w=>w.rotation.x+=roll);
   }
-// chassis
-    const targetRoll=-S.steerAngle*(S.speed/S.maxSpeed)*0.09;
-    const targetPitch=braking?0.035:(throttle?-0.022:0);
-    
-    // Add suspension bouncing effect
-    const suspensionFreq=Math.abs(S.speed)*0.3;
-    const suspensionAmt=Math.sin(performance.now()*suspensionFreq*0.01)*0.005*(S.speed/S.maxSpeed);
-    shell.rotation.z=lerp(shell.rotation.z,targetRoll+suspensionAmt,1-Math.pow(0.002,dt));
-    shell.rotation.x=lerp(shell.rotation.x,targetPitch+suspensionAmt*0.5,1-Math.pow(0.002,dt));
-    
-    // Add chassis vibration based on road surface and speed
-    const vibration=Math.sin(performance.now()*0.01)*(S.speed/100)*0.002;
-    shell.position.y=suspensionAmt+vibration;
-    
-    // Add slight yaw oscillation when turning sharply
-    const yawOsc=Math.abs(S.steerAngle)>0.3?Math.sin(performance.now()*0.03)*S.steerAngle*0.02:0;
-    shell.rotation.y=yawOsc;
+  const roadTexture=Math.sin(bus.position.x*0.14+bus.position.z*0.09)*Math.cos(bus.position.z*0.12-bus.position.x*0.05);
+  const roadInput=roadTexture*0.018*speedFraction;
+  const targetPitch=clamp(-longitudinalAcceleration*0.004,-0.035,0.045);
+  const lateralAcceleration=v*yawRate;
+  const targetRoll=clamp(-Math.atan(lateralAcceleration/9.81)*0.65,-0.12,0.12);
+  updateRideSpring('height','heightVelocity',roadInput,dt,1.45);
+  updateRideSpring('pitch','pitchVelocity',targetPitch,dt,1.3);
+  updateRideSpring('roll','rollVelocity',targetRoll,dt,1.2);
+  shell.position.y=rideState.height;
+  shell.rotation.x=rideState.pitch;
+  shell.rotation.z=rideState.roll;
+  shell.rotation.y=0;
 
   // doors animation
   S.doorP=lerp(S.doorP,S.doorsOpen?1:0,1-Math.pow(0.002,dt));
@@ -3525,13 +3533,16 @@ function animate(){
     const windZ=Math.cos(rain.windT)*0.5+0.3;
     rain.windT+=dt*1.2;
     const busSpeed=S.speed*S.maxSpeed/3600;
+    const directions=rain.userData.directions;
     for(let i=0;i<p.count;i++){
-      p.array[i*3]+= (windX + busSpeed*0.05)*dt;
-      p.array[i*3+1]-=dt*(26+Math.random()*8);
-      p.array[i*3+2]+= (windZ + busSpeed*0.05)*dt;
+      p.array[i*3]+= (windX+directions[i*3]*0.35+busSpeed*0.05)*dt;
+      p.array[i*3+1]+=directions[i*3+1]*35*dt;
+      p.array[i*3+2]+= (windZ+directions[i*3+2]*0.35+busSpeed*0.05)*dt;
       if(p.array[i*3+1]<0)p.array[i*3+1]=60;
-      if(Math.abs(p.array[i*3])>100)p.array[i*3]=(Math.random()-0.5)*200;
-      if(Math.abs(p.array[i*3+2])>100)p.array[i*3+2]=(Math.random()-0.5)*200;
+      if(p.array[i*3]>100)p.array[i*3]=-100;
+      if(p.array[i*3]<-100)p.array[i*3]=100;
+      if(p.array[i*3+2]>100)p.array[i*3+2]=-100;
+      if(p.array[i*3+2]<-100)p.array[i*3+2]=100;
     }
     p.needsUpdate=true;
     rain.position.set(bus.position.x,0,bus.position.z);
@@ -3555,7 +3566,6 @@ function animate(){
     }
     pos.needsUpdate=true;
     atmoParticles.position.set(bus.position.x,0,bus.position.z);
-    atmoParticles.visible=Math.random()>0.99?false:true;
   }
 
   puddleMeshes.forEach((puddle, index) => {
