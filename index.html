@@ -2048,6 +2048,7 @@ const wheelArchLinerMat=new THREE.MeshStandardMaterial({color:0x17232a,roughness
 // lights - Enhanced with realistic headlight housings
 const headMat=new THREE.MeshBasicMaterial({color:0xfff3c4});
 const headHousingMat=new THREE.MeshStandardMaterial({color:0x0f172a,roughness:.5,metalness:.4});
+const tailMat=new THREE.MeshBasicMaterial({color:0x7f1d1d});
 
 // Left headlight assembly
 const hlHousingL=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.3,0.18),headHousingMat);
@@ -2074,13 +2075,6 @@ const beamL=new THREE.SpotLight(0xfff7ed,0,90,Math.PI/7,0.45);
 beamL.position.set(-0.8,1.1,L/2);beamL.target.position.set(-0.8,0,L/2+40);shell.add(beamL);shell.add(beamL.target);
 const beamR=new THREE.SpotLight(0xfff7ed,0,90,Math.PI/7,0.45);
 beamR.position.set(0.8,1.1,L/2);beamR.target.position.set(0.8,0,L/2+40);shell.add(beamR);shell.add(beamR.target);
-
-// Additional interior cabin lights
-const cabinLightMat=new THREE.MeshBasicMaterial({color:0xfff6df});
-const cabinLight=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.06,7.4),cabinLightMat);
-cabinLight.position.set(0,2.92,-0.4);interior.add(cabinLight);
-const cabinLamp=new THREE.PointLight(0xffe9c4,0,9,2);
-cabinLamp.position.set(0,2.6,0);shell.add(cabinLamp);
 
 // Additional exterior lights - marker lights, running lights
 const markerLightMat=new THREE.MeshBasicMaterial({color:0xfff3c4});
@@ -3800,20 +3794,38 @@ function updateDriving(dt){
   const braking=IN.brake;
   const prev=S.speed;
   const mass=1+onboard.length/CFG.capacity*0.35;
+  const roadGrip=rain.visible?0.72:1;
+  const coastDrag=0.55+Math.abs(S.speed)*0.018;
+  const serviceBrake=12.5*roadGrip;
   if(S.gear==='D'){
-    if(throttle)S.speed+=13/mass*dt*(1-S.speed/S.maxSpeed*0.82);
-    else S.speed=Math.max(0,S.speed-3.4*dt);
+    if(throttle){
+      const driveAccel=9.2/mass*(1-Math.max(0,S.speed)/S.maxSpeed*0.82);
+      S.speed=S.speed<0?Math.min(0,S.speed+driveAccel*dt):S.speed+driveAccel*dt;
+    }else{
+      S.speed+=S.speed>0?-Math.min(S.speed,coastDrag*dt):Math.min(-S.speed,coastDrag*dt);
+    }
     if(S.speed>S.maxSpeed)S.speed=S.maxSpeed;
-    if(braking)S.speed=Math.max(0,S.speed-17*dt);
-    if(S.doorsOpen&&S.speed>0)S.speed=Math.max(0,S.speed-30*dt);
   }else if(S.gear==='R'){
-    if(throttle)S.speed=Math.max(-S.revMax,S.speed-10/mass*dt);
-    else S.speed=Math.min(0,S.speed+4*dt);
-    if(braking)S.speed=Math.min(0,S.speed+17*dt);
+    if(throttle){
+      const reverseAccel=6.2/mass;
+      S.speed=S.speed>0?Math.max(0,S.speed-reverseAccel*dt):S.speed-reverseAccel*dt;
+      S.speed=Math.max(-S.revMax,S.speed);
+    }else{
+      S.speed+=S.speed>0?-Math.min(S.speed,coastDrag*dt):Math.min(-S.speed,coastDrag*dt);
+    }
   }else{
-    S.speed=Math.max(0,S.speed-9*dt);S.speed=Math.min(0,S.speed+9*dt);
+    S.speed+=S.speed>0?-Math.min(S.speed,coastDrag*dt):Math.min(-S.speed,coastDrag*dt);
   }
-  if(S.handbrake)S.speed=lerp(S.speed,0,1-Math.pow(0.02,dt));
+  if(braking){
+    S.speed+=S.speed>0?-Math.min(S.speed,serviceBrake*dt):Math.min(-S.speed,serviceBrake*dt);
+  }
+  if(S.doorsOpen){
+    S.speed+=S.speed>0?-Math.min(S.speed,30*dt):Math.min(-S.speed,30*dt);
+  }
+  if(S.handbrake){
+    const parkingBrake=7.5*roadGrip*dt;
+    S.speed+=S.speed>0?-Math.min(S.speed,parkingBrake):Math.min(-S.speed,parkingBrake);
+  }
 
   // harsh braking penalty (only emergency-level deceleration counts)
   const decel=(prev-S.speed)/Math.max(dt,0.0001);
@@ -3835,6 +3847,9 @@ function updateDriving(dt){
   let yawRate=0;
   if(Math.abs(v)>0.005){
     yawRate=(v/6.2)*Math.tan(clamp(S.steerAngle*0.72,-0.42,0.42));
+    const lateralGrip=rain.visible?0.48:0.72;
+    const maxYawRate=lateralGrip*9.81/Math.max(Math.abs(v),2.2);
+    yawRate=clamp(yawRate,-maxYawRate,maxYawRate);
     S.heading+=yawRate*dt;
     bus.rotation.y=S.heading;
     bus.position.x+=Math.sin(S.heading)*v*dt;
