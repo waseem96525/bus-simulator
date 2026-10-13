@@ -145,6 +145,69 @@
   @media (max-width: 767px) and (max-height: 700px){
     #midHud{display:none}
   }
+  @media (min-width: 768px) and (max-height: 700px){
+    #uiOverlay{justify-content:flex-start;padding:4px}
+    #midHud{display:none}
+    #uiOverlay > :first-child{flex:0 0 auto}
+    #uiOverlay > :first-child > div:last-child > div:last-child{display:none}
+    #uiOverlay > :first-child > div:last-child > div:first-child{gap:3px}
+    #uiOverlay > :first-child > div:last-child > div:first-child button{
+      min-width:30px;min-height:30px;padding:3px 5px;font-size:10px
+    }
+    #bottomPods{
+      position:absolute;
+      left:4px;
+      right:4px;
+      bottom:max(4px,env(safe-area-inset-bottom,0px));
+      width:auto;
+      display:flex;
+      align-items:flex-end;
+      gap:6px;
+      padding:4px;
+    }
+    #bottomPods > :first-child{
+      display:flex;
+      flex-direction:row;
+      align-items:flex-end;
+      gap:4px;
+    }
+    #wheelContainer{display:none}
+    #buttonSteerContainer{display:flex;gap:4px}
+    #buttonSteerContainer .touch-pedal{
+      width:44px;height:46px;min-width:40px;min-height:40px
+    }
+    #touchUtilityControls{display:flex;gap:3px}
+    #touchUtilityControls .btn-action{
+      min-width:30px;min-height:30px;padding:3px 5px;font-size:8px
+    }
+    #bottomDashboard{
+      flex:1 1 auto;
+      min-width:0;
+      width:auto;
+      justify-content:space-around;
+      gap:4px;
+      padding:4px 6px;
+    }
+    #bottomDashboard > .hidden{display:none}
+    #bottomDashboard .gear-btn{
+      width:28px;min-width:28px;height:30px;min-height:30px;padding:0
+    }
+    #vehicleActionControls{gap:3px;padding-left:4px}
+    #vehicleActionControls .btn-action{
+      min-width:30px;min-height:32px;height:32px;padding:3px;font-size:9px
+    }
+    #pedalControls{gap:4px}
+    #pedalControls > .hidden{display:none}
+    #pedalGas,#pedalBrake{
+      width:44px;height:54px;min-width:40px;min-height:48px;padding:4px
+    }
+    #pedalControls .touch-pedal > :first-child,
+    #pedalControls .touch-pedal > :last-child{display:none}
+    #pedalControls .touch-pedal > :nth-child(2){font-size:9px}
+  }
+  @media (min-width: 768px) and (max-height: 220px){
+    #uiOverlay > :first-child{display:none}
+  }
 </style>
 </head>
 <body class="w-screen h-screen relative select-none">
@@ -1089,32 +1152,72 @@ for(let i=0;i<440;i++){
   const z=300+Math.random()*1040;
   const offset=27+Math.random()*175;
   const nearService=[640,850,1050].some(serviceZ=>Math.abs(z-serviceZ)<95&&offset<105);
-  if(!nearService)woodland.push({x:highwayCenterX+side*offset,z,height:5+Math.random()*8,radius:2.8+Math.random()*3.2});
+  if(!nearService)woodland.push({x:highwayCenterX+side*offset,z,height:5+Math.random()*8,radius:2.8+Math.random()*3.2,species:i%4===0?'pine':'broadleaf'});
 }
-const treeTrunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.42,.68,1,6),
-  new THREE.MeshStandardMaterial({color:0x59412b,roughness:1}),woodland.length);
-const treeCrowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),
-  new THREE.MeshStandardMaterial({color:0x285d38,roughness:1}),woodland.length*3);
+const treeTrunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.42,.68,1,7),
+  new THREE.MeshStandardMaterial({color:0xffffff,roughness:1}),woodland.length);
+const treeBranches=new THREE.InstancedMesh(new THREE.CylinderGeometry(.12,.24,1,5),
+  new THREE.MeshStandardMaterial({color:0x795534,roughness:1}),woodland.length*2);
+const treeCrowns=new THREE.InstancedMesh(new THREE.SphereGeometry(1,8,6),
+  new THREE.MeshStandardMaterial({color:0xffffff,roughness:.98}),woodland.length*4);
+const treePines=new THREE.InstancedMesh(new THREE.ConeGeometry(1,1,8,1),
+  new THREE.MeshStandardMaterial({color:0xffffff,roughness:1}),woodland.length*3);
 const treeDummy=new THREE.Object3D();
+let pineIndex=0;
 woodland.forEach((tree,i)=>{
   const trunkWidth=.55+Math.random()*.35;
   treeDummy.position.set(tree.x,tree.height/2,tree.z);
   treeDummy.scale.set(trunkWidth,tree.height,trunkWidth);treeDummy.updateMatrix();
   treeTrunks.setMatrixAt(i,treeDummy.matrix);
-  const leafColors=[0x1f5133,0x28643c,0x347344];
-  for(let layer=0;layer<3;layer++){
-    const crownIndex=i*3+layer;
-    treeDummy.position.set(tree.x+(layer-1)*tree.radius*.32,tree.height*.68+layer*tree.radius*.45,tree.z+(layer===1?0:tree.radius*.12));
-    treeDummy.scale.set(tree.radius*(layer===1?1.12:.82),tree.radius*(layer===1?1:.82),tree.radius*(layer===1?1.05:.82));
+  treeTrunks.setColorAt(i,new THREE.Color([0x59412b,0x644a30,0x725337][i%3]));
+  for(let branch=0;branch<2;branch++){
+    treeDummy.position.set(tree.x+(branch?1:-1)*tree.radius*.17,tree.height*.58,tree.z);
+    const branchScale=tree.species==='pine'?.001:1;
+    treeDummy.scale.set(.58*branchScale,tree.height*.44*branchScale,.58*branchScale);
+    treeDummy.rotation.set(0,0,(branch?1:-1)*.72);treeDummy.updateMatrix();
+    const branchIndex=i*2+branch;
+    treeBranches.setMatrixAt(branchIndex,treeDummy.matrix);
+    treeBranches.setColorAt(branchIndex,new THREE.Color([0x6c4b2c,0x795534,0x855e37][i%3]));
+  }
+  const leafColors=[0x1d4b31,0x28643c,0x347344,0x245839];
+  const clusters=[
+    [0,.72,0,.84,.76,.82],
+    [-.52,.68,-.08,.68,.7,.72],
+    [.5,.7,.08,.72,.73,.76],
+    [.02,1.05,0,.67,.72,.68]
+  ];
+  for(let layer=0;layer<clusters.length;layer++){
+    const [ox,oy,oz,sx,sy,sz]=clusters[layer];
+    const crownIndex=i*clusters.length+layer;
+    treeDummy.position.set(tree.x+ox*tree.radius,tree.height*.58+oy*tree.radius,tree.z+oz*tree.radius);
+    const clusterScale=tree.species==='pine'?.001:1;
+    treeDummy.scale.set(tree.radius*sx*clusterScale,tree.radius*sy*clusterScale,tree.radius*sz*clusterScale);
     treeDummy.rotation.set(0,Math.random()*Math.PI,0);treeDummy.updateMatrix();
     treeCrowns.setMatrixAt(crownIndex,treeDummy.matrix);
     treeCrowns.setColorAt(crownIndex,new THREE.Color(leafColors[layer]));
   }
+  if(tree.species==='pine'){
+    const tierColors=[0x1e5737,0x286b40,0x347a49];
+    for(let tier=0;tier<3;tier++){
+      const tierIndex=pineIndex++;
+      const size=[1.12,.84,.59][tier];
+      treeDummy.position.set(tree.x,tree.height*.58+tree.radius*(.34+tier*.47),tree.z);
+      treeDummy.scale.set(tree.radius*size,tree.radius*1.5,tree.radius*size);
+      treeDummy.rotation.set(0,Math.random()*Math.PI,0);treeDummy.updateMatrix();
+      treePines.setMatrixAt(tierIndex,treeDummy.matrix);
+      treePines.setColorAt(tierIndex,new THREE.Color(tierColors[tier]));
+    }
+  }
 });
-treeTrunks.instanceMatrix.needsUpdate=true;treeCrowns.instanceMatrix.needsUpdate=true;
+treePines.count=pineIndex;
+treeTrunks.instanceMatrix.needsUpdate=true;treeTrunks.instanceColor.needsUpdate=true;
+treeBranches.instanceMatrix.needsUpdate=true;treeBranches.instanceColor.needsUpdate=true;
+treeCrowns.instanceMatrix.needsUpdate=true;
 treeCrowns.instanceColor.needsUpdate=true;
-treeTrunks.castShadow=true;treeCrowns.castShadow=true;
-scene.add(treeTrunks,treeCrowns);
+treePines.instanceMatrix.needsUpdate=true;treePines.instanceColor.needsUpdate=true;
+treeTrunks.castShadow=true;treeCrowns.castShadow=true;treePines.castShadow=true;
+treeBranches.castShadow=false;
+scene.add(treeTrunks,treeBranches,treeCrowns,treePines);
 
 function makeHighwayBoard(text){
   return makeCanvasTex((ctx,w,h)=>{
@@ -2951,6 +3054,64 @@ Object.keys(NODES).forEach(k=>{
   });
 });
 const NODE_KEYS=Object.keys(NODES);
+
+// Raised curbs, pedestrian crossings, stop bars and utility covers break up
+// the uninterrupted road surfaces while staying in a handful of draw calls.
+const curbG=[],crosswalkG=[],stopBarG=[],drainG=[],coverG=[],coverRingG=[];
+const curbMat=new THREE.MeshStandardMaterial({color:0x87919a,roughness:.88});
+const crossingMat=new THREE.MeshStandardMaterial({color:0xd8d6c7,roughness:.92});
+const stopBarMat=new THREE.MeshBasicMaterial({color:0xf4f1e5});
+const drainMat=new THREE.MeshStandardMaterial({color:0x242a30,roughness:.82,metalness:.2});
+const coverMat=new THREE.MeshStandardMaterial({color:0x353b40,roughness:.72,metalness:.38});
+const coverRingMat=new THREE.MeshStandardMaterial({color:0x71787b,roughness:.56,metalness:.55});
+const coverGeo=new THREE.CircleGeometry(.72,18);
+coverGeo.rotateX(-Math.PI/2);
+const coverRingGeo=new THREE.TorusGeometry(.69,.055,5,20);
+coverRingGeo.rotateX(-Math.PI/2);
+for(let lineIndex=-3;lineIndex<=3;lineIndex++){
+  const line=lineIndex*CFG.block;
+  for(let segment=-3;segment<3;segment++){
+    const mid=segment*CFG.block+CFG.block/2;
+    for(const side of [-1,1]){
+      curbG.push(bxg(.42,.34,60,line+side*12.12,.17,mid));
+      curbG.push(bxg(60,.34,.42,mid,.17,line+side*12.12));
+      if(segment%2===0){
+        for(let slot=0;slot<5;slot++){
+          drainG.push(bxg(.11,.025,1.15,line+side*11.15,.045,segment*CFG.block+24+slot*.62));
+          drainG.push(bxg(1.15,.025,.11,segment*CFG.block+24+slot*.62,.045,line+side*11.15));
+        }
+      }
+    }
+    if(segment%2===0){
+      const cover=coverGeo.clone();
+      cover.translate(line+3.6,.052,mid);
+      coverG.push(cover);
+      const ring=coverRingGeo.clone();
+      ring.translate(line+3.6,.058,mid);
+      coverRingG.push(ring);
+    }
+  }
+}
+for(const x of GRID)for(const z of GRID){
+  for(let stripe=-4;stripe<=4;stripe++){
+    const offset=stripe*2.05;
+    for(const side of [-1,1]){
+      crosswalkG.push(bxg(1.35,.035,.82,x+offset,.052,z+side*16));
+      crosswalkG.push(bxg(.82,.035,1.35,x+side*16,.052,z+offset));
+    }
+  }
+  for(const side of [-1,1]){
+    stopBarG.push(bxg(12,.04,.46,x,.055,z+side*10.9));
+    stopBarG.push(bxg(.46,.04,12,x+side*10.9,.055,z));
+  }
+}
+mergeInto(curbG,curbMat,true);
+mergeInto(crosswalkG,crossingMat,false);
+mergeInto(stopBarG,stopBarMat,false);
+mergeInto(drainG,drainMat,false);
+mergeInto(coverG,coverMat,false);
+mergeInto(coverRingG,coverRingMat,false);
+
 function nodeAt(k){return NODES[k];}
 function headingOf(from,to){return Math.atan2(to.x-from.x,to.z-from.z);}
 function pickNext(node,dirH){
@@ -2964,50 +3125,77 @@ function pickNext(node,dirH){
   return {node:t,turn:d>0.4?-1:(d<-0.4?1:0)};
 }
 
-/* --- traffic lights (merged: 4 draw calls for the whole city) ------- */
+/* --- traffic lights (instanced signal lenses keep the city lightweight) --- */
 const LIGHT_PERIOD=20;
 let lightPhase=0;
-const lightMats={
-  nsR:new THREE.MeshBasicMaterial({color:0xff2b2b}),
-  nsG:new THREE.MeshBasicMaterial({color:0x123015}),
-  ewR:new THREE.MeshBasicMaterial({color:0xff2b2b}),
-  ewG:new THREE.MeshBasicMaterial({color:0x123015})
-};
+const signalLensMeshes={};
+const signalLensState={};
 (function buildTrafficLights(){
-  const poleG=[],nsR=[],nsG=[],ewR=[],ewG=[];
-  const faceZ=(x,z,y)=>bxg(.62,.62,.06,x,y,z);
-  const faceX=(x,z,y)=>bxg(.62,.62,.06,x,y,z,0,Math.PI/2,0);
+  const poleG=[];
+  const lenses={ns:{red:[],amber:[],green:[]},ew:{red:[],amber:[],green:[]}};
+  const sphere=new THREE.SphereGeometry(1,10,8);
+  const addSignal=(axis,x,z,front)=>{
+    poleG.push(axis==='ns'
+      ?bxg(1.05,2.35,.72,x,6.1,z)
+      :bxg(.72,2.35,1.05,x,6.1,z));
+    const faceOffset=.39*front;
+    const centers={red:6.78,amber:6.1,green:5.42};
+    for(const [color,y] of Object.entries(centers)){
+      const object=new THREE.Object3D();
+      object.position.set(x+(axis==='ew'?faceOffset:0),y,z+(axis==='ns'?faceOffset:0));
+      object.scale.set(axis==='ew'?.11:.21,.21,axis==='ns'?.11:.21);
+      object.updateMatrix();
+      lenses[axis][color].push(object.matrix.clone());
+    }
+  };
   NODE_KEYS.forEach(k=>{
     const n=NODES[k];
     const cx=n.x, cz=n.z;
-    // mast arm on the NE corner, arm reaching over the EW road
+    // Cantilevered mast arms and four signal heads at each junction.
     poleG.push(bxg(.36,6.6,.36,cx+13.2,3.3,cz+13.2));
     poleG.push(bxg(26.8,.3,.3,cx,6.4,cz+13.2));
     poleG.push(bxg(.36,6.6,.36,cx-13.2,3.3,cz+13.2));
     poleG.push(bxg(.3,.3,26.8,cx+13.2,6.4,cz));
-    // housings
-    poleG.push(bxg(1.1,1.5,.5,cx-13.2,6.1,cz-12.6));
-    poleG.push(bxg(.5,1.5,1.1,cx-12.6,6.1,cz+13.2));
-    poleG.push(bxg(1.1,1.5,.5,cx+13.2,6.1,cz+12.6));
-    poleG.push(bxg(.5,1.5,1.1,cx+12.6,6.1,cz-13.2));
-    // lamps: NS = traffic travelling along Z, EW = traffic travelling along X
-    nsR.push(faceZ(cx-13.2,cz+12.55,5.75),faceZ(cx+13.2,cz-12.55,5.75));
-    nsG.push(faceZ(cx-13.2,cz+12.55,6.45),faceZ(cx+13.2,cz-12.55,6.45));
-    ewR.push(faceX(cx-12.55,cz+13.2,5.75),faceX(cx+12.55,cz-13.2,5.75));
-    ewG.push(faceX(cx-12.55,cz+13.2,6.45),faceX(cx+12.55,cz-13.2,6.45));
+    addSignal('ns',cx-13.2,cz-12.6,1);
+    addSignal('ns',cx+13.2,cz+12.6,-1);
+    addSignal('ew',cx-12.6,cz+13.2,1);
+    addSignal('ew',cx+12.6,cz-13.2,-1);
   });
-  mergeInto(poleG,new THREE.MeshStandardMaterial({color:0x2b3138,roughness:.8}),false);
-  mergeInto(nsR,lightMats.nsR,false);mergeInto(nsG,lightMats.nsG,false);
-  mergeInto(ewR,lightMats.ewR,false);mergeInto(ewG,lightMats.ewG,false);
+  mergeInto(poleG,new THREE.MeshStandardMaterial({color:0x202832,roughness:.58,metalness:.42}),false);
+  Object.entries(lenses).forEach(([axis,colors])=>{
+    Object.entries(colors).forEach(([color,matrices])=>{
+      const material=new THREE.MeshBasicMaterial({color:0xffffff,toneMapped:false});
+      const mesh=new THREE.InstancedMesh(sphere,material,matrices.length);
+      matrices.forEach((matrix,index)=>mesh.setMatrixAt(index,matrix));
+      mesh.instanceMatrix.needsUpdate=true;
+      signalLensMeshes[axis+color]={mesh,count:matrices.length};
+      scene.add(mesh);
+    });
+  });
 })();
 function updateLights(dt){
   lightPhase=(lightPhase+dt)%LIGHT_PERIOD;
   const nsGreen=lightPhase<8, nsAmber=lightPhase>=8&&lightPhase<9;
   const ewGreen=lightPhase>=10&&lightPhase<18, ewAmber=lightPhase>=18&&lightPhase<19;
-  lightMats.nsR.color.setHex(nsGreen?0x2a1010:0xff2b2b);
-  lightMats.nsG.color.setHex(nsGreen?0x33ff66:(nsAmber?0xffb020:0x0f2410));
-  lightMats.ewR.color.setHex(ewGreen?0x2a1010:0xff2b2b);
-  lightMats.ewG.color.setHex(ewGreen?0x33ff66:(ewAmber?0xffb020:0x0f2410));
+  const updateSignal=(axis,green,amber)=>{
+    const states={
+      red:(green||amber)?0x260c0c:0xff2525,
+      amber:amber?0xffaa1a:0x261c08,
+      green:green&&!amber?0x29ff67:0x0a2412
+    };
+    Object.entries(states).forEach(([color,hex])=>{
+      const key=axis+color;
+      const data=signalLensMeshes[key];
+      if(!data)return;
+      if(signalLensState[key]===hex)return;
+      const value=new THREE.Color(hex);
+      for(let index=0;index<data.count;index++)data.mesh.setColorAt(index,value);
+      data.mesh.instanceColor.needsUpdate=true;
+      signalLensState[key]=hex;
+    });
+  };
+  updateSignal('ns',nsGreen,nsAmber);
+  updateSignal('ew',ewGreen,ewAmber);
 }
 function nsAllowed(){return lightPhase<9;}          // north-south green/amber window
 function ewAllowed(){return lightPhase>=10;}        // east-west green/amber window
@@ -3018,10 +3206,11 @@ const puddleMat=new THREE.MeshPhysicalMaterial({
 });
 const puddleMeshes=[];
 /* --- street lighting (merged: 2 draw calls for the whole city) ------ */
-const lampHeadMat=new THREE.MeshBasicMaterial({color:0x3b3a33});
+const lampHeadMat=new THREE.MeshStandardMaterial({color:0x3b3a33,emissive:0xffe7ad,emissiveIntensity:0,roughness:.42,metalness:.16});
+const lampBulbMat=new THREE.MeshStandardMaterial({color:0xfff1c4,emissive:0xffd985,emissiveIntensity:0,roughness:.22});
 const lampLights=[];
 (function buildStreetLamps(){
-  const poles=[],heads=[];
+  const poles=[],heads=[],bulbs=[];
   let k=0;
   for(let i=-3;i<=3;i++){
     const line=i*CFG.block;
@@ -3033,11 +3222,15 @@ const lampLights=[];
       // lamp along a north-south road
       poles.push(bxg(.24,6.4,.24,line+s,3.2,t));
       poles.push(bxg(.26,.24,2.6,line+s-s*.5,6.3,t));
+      poles.push(bxg(.72,.22,.72,line+s,.12,t));
       heads.push(bxg(.9,.2,.5,litPos1[0],litPos1[1],litPos1[2]));
+      bulbs.push(bxg(.58,.045,.3,litPos1[0],6.035,litPos1[2]));
       // lamp along an east-west road
       poles.push(bxg(.24,6.4,.24,t,3.2,line+s));
       poles.push(bxg(2.6,.24,.26,t,6.3,line+s-s*.5));
+      poles.push(bxg(.72,.22,.72,t,.12,line+s));
       heads.push(bxg(.5,.2,.9,litPos2[0],litPos2[1],litPos2[2]));
+      bulbs.push(bxg(.3,.045,.58,litPos2[0],6.035,litPos2[2]));
 
       const pointLight=new THREE.PointLight(0xfff1c4,0.0,32,2.2);
       pointLight.position.set(litPos1[0], litPos1[1]+0.2, litPos1[2]);
@@ -3054,6 +3247,7 @@ const lampLights=[];
   }
   mergeInto(poles,new THREE.MeshStandardMaterial({color:0x3a4048,roughness:.8}),false);
   mergeInto(heads,lampHeadMat,false);
+  mergeInto(bulbs,lampBulbMat,false);
 
   Object.values(NODES).forEach((n, idx) => {
     if (idx % 3 !== 0 || Math.random() > 0.35) return;
@@ -3719,6 +3913,8 @@ return '☀️';
 function applyNightLook(night,raining){
   S.dark=night?1:0;
   lampHeadMat.color.setHex(night?0xfff1c4:0x3b3a33);
+  lampHeadMat.emissiveIntensity=night?0.3:0;
+  lampBulbMat.emissiveIntensity=night?(raining?.75:1.35):0;
   cabinLightMat.color.setHex(night?0xfff8e6:0x9a968a);
   cabinLamp.intensity=night?0.85:0;
   const lampIntensity = night ? (raining ? 0.55 : 1.15) : 0;
