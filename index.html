@@ -1406,8 +1406,8 @@ for(let i=-2;i<=2;i++){
   const vent=new THREE.Mesh(new THREE.BoxGeometry(0.045,0.035,2.15),acVentMat);
   vent.position.set(i*0.2,3.49,-1.0);shell.add(vent);
 }
-const frontMask=new THREE.Mesh(new THREE.BoxGeometry(W-0.22,1.62,0.14),new THREE.MeshStandardMaterial({color:0x0b1220,roughness:.5,metalness:.4}));
-frontMask.position.set(0,2.0,L/2+0.08);frontMask.rotation.x=-0.12;shell.add(frontMask);
+const frontMask=new THREE.Mesh(new THREE.BoxGeometry(W-0.22,0.28,0.14),new THREE.MeshStandardMaterial({color:0x0b1220,roughness:.5,metalness:.4}));
+frontMask.position.set(0,1.16,L/2+0.08);shell.add(frontMask);
 
 // window band glass
 const winY=2.12, winH=1.55;
@@ -1526,8 +1526,8 @@ const stopBtn=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.05,12),
   new THREE.MeshBasicMaterial({color:0x3f1d1d}));
 stopBtn.rotation.x=Math.PI/2;stopBtn.position.set(0.72,1.75,2.6);interior.add(stopBtn);
 // driver console: column, wheel hub, gauges, fare console
-const dash2=new THREE.Mesh(new THREE.BoxGeometry(W-0.24,0.42,0.7),busDark);
-dash2.position.set(0,1.62,L/2-1.05);interior.add(dash2);
+const dash2=new THREE.Mesh(new THREE.BoxGeometry(W-0.3,0.32,0.46),busDark);
+dash2.position.set(0,1.53,L/2-1.35);interior.add(dash2);
 const column=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.09,0.5,8),busDark);
 column.position.set(-0.72,1.5,L/2-1.4);column.rotation.x=0.5;interior.add(column);
 const gauge=new THREE.Mesh(new THREE.CircleGeometry(0.16,16),new THREE.MeshBasicMaterial({color:0x1f2937}));
@@ -1537,19 +1537,194 @@ gaugeNeedle.position.set(-0.72,1.78,L/2-0.89);gaugeNeedle.rotation.x=-0.9;gaugeN
 // rear-view mirror inside the cabin
 const mirror=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.11,0.03),new THREE.MeshStandardMaterial({color:0x0f172a,roughness:.2,metalness:.8}));
 mirror.position.set(0,2.72,L/2-1.7);interior.add(mirror);
+// Driver-facing side mirrors show a lightweight live view of nearby traffic.
+const sideMirrorFeeds=[];
+function createSideMirrorFeed(sign){
+  const tex=makeCanvasTex((ctx,w,h)=>{
+    const sky=ctx.createLinearGradient(0,0,0,h);
+    sky.addColorStop(0,'#8db6c7');sky.addColorStop(.58,'#c2d0cc');sky.addColorStop(.59,'#3e4d54');sky.addColorStop(1,'#18252d');
+    ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#64727a';
+    for(let i=0;i<8;i++){
+      const x=i*w/8,buildingH=18+(i*17%31);
+      ctx.fillRect(x,h*.48-buildingH,Math.max(8,w/10),buildingH);
+    }
+    ctx.fillStyle='#26353c';
+    ctx.beginPath();ctx.moveTo(w*.28,h);ctx.lineTo(w*.44,h*.55);ctx.lineTo(w*.59,h*.55);ctx.lineTo(w*.82,h);ctx.fill();
+    ctx.strokeStyle='rgba(225,233,224,.72)';ctx.lineWidth=2;ctx.setLineDash([10,8]);
+    ctx.beginPath();ctx.moveTo(w*.52,h);ctx.lineTo(w*.52,h*.57);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(8,19,27,.74)';ctx.fillRect(0,h-21,w,21);
+    ctx.fillStyle='#b9d3db';ctx.font='bold 13px sans-serif';ctx.textAlign='left';
+    ctx.fillText(sign<0?'LEFT SIDE':'RIGHT SIDE',8,h-7);
+  },256,144);
+  tex.encoding=THREE.sRGBEncoding;
+  sideMirrorFeeds.push({sign,tex});
+  return tex;
+}
+let sideMirrorUpdateT=0;
+function updateSideMirrorFeeds(dt){
+  sideMirrorUpdateT+=dt;
+  if(sideMirrorUpdateT<0.16)return;
+  sideMirrorUpdateT=0;
+  const forward=headingVec(S.heading),right=rightVec(S.heading);
+  for(const feed of sideMirrorFeeds){
+    const ctx=feed.tex.image.getContext('2d'),w=feed.tex.image.width,h=feed.tex.image.height;
+    const sky=ctx.createLinearGradient(0,0,0,h);
+    sky.addColorStop(0,S.dark?'#263b50':'#8db6c7');
+    sky.addColorStop(.58,S.dark?'#52616b':'#c2d0cc');
+    sky.addColorStop(.59,'#3e4d54');sky.addColorStop(1,'#18252d');
+    ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+    for(let i=0;i<8;i++){
+      const x=i*w/8,bh=18+(i*17%31);
+      ctx.fillStyle=S.dark?'#26333c':'#64727a';
+      ctx.fillRect(x,h*.48-bh,Math.max(8,w/10),bh);
+      if(S.dark){
+        ctx.fillStyle='#f8ca75';
+        for(let wy=h*.48-bh+5;wy<h*.48-3;wy+=9)ctx.fillRect(x+4,wy,3,3);
+      }
+    }
+    ctx.fillStyle='#26353c';
+    ctx.beginPath();ctx.moveTo(w*.28,h);ctx.lineTo(w*.44,h*.55);ctx.lineTo(w*.59,h*.55);ctx.lineTo(w*.82,h);ctx.fill();
+    ctx.strokeStyle='rgba(225,233,224,.72)';ctx.lineWidth=2;ctx.setLineDash([10,8]);
+    ctx.beginPath();ctx.moveTo(w*.52,h);ctx.lineTo(w*.52,h*.57);ctx.stroke();ctx.setLineDash([]);
+    let visibleCars=0;
+    for(const car of aiCars){
+      const dx=car.position.x-bus.position.x,dz=car.position.z-bus.position.z;
+      const longitudinal=dx*forward.x+dz*forward.z;
+      const lateral=(dx*right.x+dz*right.z)*feed.sign;
+      if(longitudinal<-62||longitudinal>16||lateral<-3||lateral>24)continue;
+      const x=clamp((longitudinal+62)/78*w,8,w-8);
+      const y=clamp(h*.56+(18-lateral)*1.8,h*.58,h-26);
+      const scale=clamp(1.15-lateral/30,.38,1);
+      const cw=21*scale,ch=11*scale;
+      ctx.fillStyle='#101820';ctx.fillRect(x-cw/2-2,y-ch/2-2,cw+4,ch+4);
+      ctx.fillStyle=car.userData.mirrorColor||'#77aeb8';ctx.fillRect(x-cw/2,y-ch/2,cw,ch);
+      ctx.fillStyle='#c9e4e8';ctx.fillRect(x-cw*.32,y-ch*.35,cw*.64,ch*.35);
+      ctx.fillStyle='#f7d17d';ctx.fillRect(x-cw*.42,y+ch*.18,3*scale,2*scale);
+      ctx.fillRect(x+cw*.3,y+ch*.18,3*scale,2*scale);
+      visibleCars++;
+    }
+    ctx.fillStyle='rgba(8,19,27,.78)';ctx.fillRect(0,h-21,w,21);
+    ctx.fillStyle='#b9d3db';ctx.font='bold 13px sans-serif';ctx.textAlign='left';
+    ctx.fillText(feed.sign<0?'LEFT SIDE':'RIGHT SIDE',8,h-7);
+    if(!visibleCars){ctx.textAlign='right';ctx.fillStyle='rgba(225,239,242,.8)';ctx.font='11px sans-serif';ctx.fillText('CLEAR',w-8,h-7);}
+    feed.tex.needsUpdate=true;
+  }
+}
+[-1,1].forEach(sign=>{
+  const sideMirror=new THREE.Group();
+  sideMirror.position.set(sign<0?-0.98:0.28,2.49,L/2-0.48);
+  sideMirror.rotation.y=sign<0?2.65:-2.65;
+  const housing=new THREE.Mesh(new THREE.BoxGeometry(0.43,0.3,0.09),
+    new THREE.MeshStandardMaterial({color:0x101923,roughness:.66,metalness:.12}));
+  sideMirror.add(housing);
+  const bezel=new THREE.Mesh(new THREE.PlaneGeometry(0.39,0.265),
+    new THREE.MeshStandardMaterial({color:0x91a4ad,roughness:.32,metalness:.78}));
+  bezel.position.z=0.047;sideMirror.add(bezel);
+  const mirrorFace=new THREE.Mesh(new THREE.PlaneGeometry(0.35,0.22),
+    new THREE.MeshBasicMaterial({map:createSideMirrorFeed(sign)}));
+  mirrorFace.position.z=0.051;sideMirror.add(mirrorFace);
+  const lowerTrim=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.018,0.016),
+    new THREE.MeshStandardMaterial({color:0x263442,roughness:.46,metalness:.42}));
+  lowerTrim.position.set(0,-0.13,0.056);sideMirror.add(lowerTrim);
+  const stalk=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.028,0.2,8),
+    new THREE.MeshStandardMaterial({color:0x91a4ad,roughness:.32,metalness:.78}));
+  stalk.position.set(0,-0.24,-0.015);stalk.rotation.x=-0.42;sideMirror.add(stalk);
+  interior.add(sideMirror);
+});
 // step well at the doorway
 const well=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.1,1.2),new THREE.MeshStandardMaterial({color:0x0f172a,roughness:.95}));
 well.position.set(1.0,0.92,3.1);interior.add(well);
 
 // dashboard + driver
-const dash=new THREE.Mesh(new THREE.BoxGeometry(W-0.2,0.4,0.6),busDark);
-dash.position.set(0,1.55,L/2-1.0);interior.add(dash);
+const cockpitTrim=new THREE.MeshStandardMaterial({color:0x263442,roughness:.46,metalness:.42});
+const cockpitSoftTouch=new THREE.MeshStandardMaterial({color:0x101923,roughness:.72,metalness:.08});
+const cockpitMetal=new THREE.MeshStandardMaterial({color:0x91a4ad,roughness:.32,metalness:.78});
+const cockpitLight=new THREE.PointLight(0x9ddfff,0,4,2);
+cockpitLight.position.set(-0.72,2.25,L/2-1.1);interior.add(cockpitLight);
+const clusterDisplayTex=makeCanvasTex((ctx,w,h)=>{
+  ctx.fillStyle='#071923';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#62e4ff';ctx.font='bold 74px monospace';ctx.fillText('00',24,88);
+  ctx.font='bold 34px monospace';ctx.fillText('D',390,58);
+  ctx.font='20px monospace';ctx.fillText('KM/H',392,94);
+},512,128);
+clusterDisplayTex.encoding=THREE.sRGBEncoding;
+const cockpitScreenMat=new THREE.MeshBasicMaterial({map:clusterDisplayTex});
+let cockpitDisplayT=0;
+function updateCockpitDisplay(dt){
+  cockpitDisplayT+=dt;
+  if(cockpitDisplayT<0.12)return;
+  cockpitDisplayT=0;
+  const ctx=clusterDisplayTex.image.getContext('2d');
+  ctx.fillStyle='#071923';ctx.fillRect(0,0,512,128);
+  ctx.strokeStyle='#1b6072';ctx.lineWidth=4;ctx.strokeRect(4,4,504,120);
+  ctx.fillStyle='#62e4ff';ctx.font='bold 74px monospace';
+  ctx.fillText(String(Math.round(Math.abs(S.speed))).padStart(2,'0'),24,88);
+  ctx.font='bold 34px monospace';ctx.fillText(S.gear,390,58);
+  ctx.font='20px monospace';ctx.fillText('KM/H',392,94);
+  ctx.fillStyle='#9ab8c2';ctx.font='16px monospace';
+  ctx.fillText('LIMIT '+CFG.limit,24,116);
+  clusterDisplayTex.needsUpdate=true;
+}
+const cockpitAmberMat=new THREE.MeshBasicMaterial({color:0xffbd4a});
+const dashTop=new THREE.Mesh(new THREE.BoxGeometry(W-0.16,0.13,0.62),cockpitTrim);
+dashTop.position.set(0,1.78,L/2-1.3);dashTop.rotation.x=-0.12;interior.add(dashTop);
+const instrumentPod=new THREE.Mesh(new THREE.BoxGeometry(0.96,0.34,0.24),cockpitSoftTouch);
+instrumentPod.position.set(-0.72,2.02,L/2-0.85);instrumentPod.rotation.x=-0.12;interior.add(instrumentPod);
+const clusterFace=new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.2),cockpitScreenMat);
+clusterFace.position.set(-0.72,2.04,L/2-0.98);clusterFace.rotation.set(-0.12,Math.PI,0);interior.add(clusterFace);
+const routeScreen=new THREE.Mesh(new THREE.BoxGeometry(0.36,0.24,0.08),cockpitSoftTouch);
+routeScreen.position.set(0.18,2.01,L/2-0.85);routeScreen.rotation.x=-0.12;interior.add(routeScreen);
+const routeScreenFace=new THREE.Mesh(new THREE.PlaneGeometry(0.29,0.16),cockpitAmberMat);
+routeScreenFace.position.set(0.18,2.02,L/2-0.93);routeScreenFace.rotation.set(-0.12,Math.PI,0);interior.add(routeScreenFace);
+const ventMat=new THREE.MeshStandardMaterial({color:0x090f15,roughness:.66,metalness:.24});
+for(let i=-2;i<=2;i++){
+  const vent=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.035,0.018),ventMat);
+ vent.position.set(i*0.28,1.8,L/2-1.18);interior.add(vent);
+}
+// A readable equipment stack and toggle bank fill the passenger-side console.
+const radio=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.18,0.28),cockpitSoftTouch);
+radio.position.set(0.65,1.68,L/2-1.05);interior.add(radio);
+const radioFace=new THREE.Mesh(new THREE.PlaneGeometry(0.28,0.075),cockpitScreenMat);
+radioFace.position.set(0.65,1.69,L/2-1.095);radioFace.rotation.y=Math.PI;interior.add(radioFace);
+for(let i=0;i<4;i++){
+  const toggle=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.045,8),i===0?cockpitAmberMat:cockpitMetal);
+  toggle.rotation.x=Math.PI/2;toggle.position.set(0.42+i*0.13,1.58,L/2-1.06);interior.add(toggle);
+}
 const driverSeat=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.16,0.6),seatMat);
-driverSeat.position.set(-0.72,1.42,L/2-1.5);interior.add(driverSeat);
+driverSeat.position.set(-0.72,1.42,L/2-1.8);interior.add(driverSeat);
+const driverSeatBack=new THREE.Mesh(new THREE.BoxGeometry(0.62,0.76,0.16),seatMat);
+driverSeatBack.position.set(-0.72,1.82,L/2-2.05);driverSeatBack.rotation.x=-0.12;interior.add(driverSeatBack);
+const seatPedestal=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.16,0.46,8),cockpitMetal);
+seatPedestal.position.set(-0.72,1.17,L/2-1.8);interior.add(seatPedestal);
 const cockpitWheel=new THREE.Group();
-cockpitWheel.position.set(-0.72,1.85,L/2-1.35);cockpitWheel.rotation.x=-0.6;
-cockpitWheel.add(new THREE.Mesh(new THREE.TorusGeometry(0.26,0.035,8,20),busDark));
-shell.add(cockpitWheel);
+cockpitWheel.position.set(-0.72,1.92,L/2-0.95);cockpitWheel.rotation.x=-0.6;
+const wheelRim=new THREE.Mesh(new THREE.TorusGeometry(0.29,0.038,8,24),busDark);
+cockpitWheel.add(wheelRim);
+const wheelHub=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.12,12),cockpitTrim);
+wheelHub.rotation.x=Math.PI/2;cockpitWheel.add(wheelHub);
+for(let spoke=0;spoke<3;spoke++){
+  const spokeMesh=new THREE.Mesh(new THREE.BoxGeometry(0.035,0.25,0.055),cockpitMetal);
+  spokeMesh.position.y=spoke===0?0.12:-0.03;
+  spokeMesh.rotation.z=spoke===0?0:(spoke===1?0.82:-0.82);
+  cockpitWheel.add(spokeMesh);
+}
+interior.add(cockpitWheel);
+const steeringColumn=new THREE.Mesh(new THREE.CylinderGeometry(0.065,0.085,0.6,10),cockpitTrim);
+steeringColumn.position.set(-0.72,1.73,L/2-1.0);steeringColumn.rotation.x=0.86;interior.add(steeringColumn);
+// Transmission selector and brake/accelerator pedals.
+const selectorBase=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.1,0.25),cockpitSoftTouch);
+selectorBase.position.set(0.48,1.55,L/2-1.55);interior.add(selectorBase);
+const selectorRod=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.035,0.28,8),cockpitMetal);
+selectorRod.position.set(0.48,1.72,L/2-1.55);selectorRod.rotation.z=-0.16;interior.add(selectorRod);
+const selectorKnob=new THREE.Mesh(new THREE.SphereGeometry(0.075,10,8),cockpitTrim);
+selectorKnob.position.set(0.455,1.86,L/2-1.55);interior.add(selectorKnob);
+for(const [x,z] of [[-0.92,L/2-0.25],[-0.48,L/2-0.25]]){
+  const pedalArm=new THREE.Mesh(new THREE.BoxGeometry(0.045,0.32,0.045),cockpitMetal);
+  pedalArm.position.set(x,1.22,z);pedalArm.rotation.x=-0.25;interior.add(pedalArm);
+  const pedalPad=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.06,0.16),cockpitSoftTouch);
+  pedalPad.position.set(x,1.06,z+0.06);pedalPad.rotation.x=-0.18;interior.add(pedalPad);
+}
 
 // driver figure
 const PAXGEO={
@@ -3375,8 +3550,8 @@ function updateCamera(dt){
       look.set(p.x+f.x*8*viewDir,2.2,p.z+f.z*8*viewDir);
       break;
     case 'cabin':
-      want.set(p.x+r.x*-0.72+f.x*3.4, 2.75, p.z+r.z*-0.72+f.z*3.4);
-      look.set(p.x+f.x*22, 2.0, p.z+f.z*22);
+      want.set(p.x+r.x*-0.72+f.x*3.8, 2.3, p.z+r.z*-0.72+f.z*3.8);
+      look.set(p.x+f.x*22, 2.25, p.z+f.z*22);
       break;
     case 'kerb':
       want.set(p.x+r.x*10*zoom+f.x*7.5*zoom*viewDir, 3.4*zoom, p.z+r.z*10*zoom+f.z*7.5*zoom*viewDir);
@@ -3393,7 +3568,11 @@ function updateCamera(dt){
   }
   camera.position.lerp(want,1-Math.pow(0.0015,dt));
   camera.lookAt(look);
-  const targetFov=S.camera===1?58:58+Math.min(Math.abs(S.speed)/S.maxSpeed,1)*4;
+  glassTint.opacity=S.camera===1?0.24:0.7;
+  panoramicWindshield.material.opacity=S.camera===1?0.24:0.74;
+  cockpitLight.intensity=S.camera===1?0.55:0;
+  driver.group.visible=S.camera!==1;
+  const targetFov=S.camera===1?74:58+Math.min(Math.abs(S.speed)/S.maxSpeed,1)*4;
   if(Math.abs(camera.fov-targetFov)>0.05){
     camera.fov=lerp(camera.fov,targetFov,1-Math.pow(0.0015,dt));
     camera.updateProjectionMatrix();
@@ -3716,6 +3895,7 @@ function animate(){
   frames++;
 
   updateDriving(dt);
+  updateCockpitDisplay(dt);
   sunLight.target.position.copy(bus.position);
   sunLight.position.copy(bus.position).add(sunOffset);
   skyDome.position.set(camera.position.x,0,camera.position.z);
@@ -3723,6 +3903,7 @@ function animate(){
   updateLights(dt);
   updateIncidents(dt);
   updateTraffic(dt,S.dark);
+  updateSideMirrorFeeds(dt);
   checkBusSignal();
   checkCollisions(dt);
   updatePassengers(dt);
