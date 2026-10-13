@@ -1457,6 +1457,11 @@ for(let i=0;i<6;i++){
 const interior=new THREE.Group();shell.add(interior);
 const floor=new THREE.Mesh(new THREE.BoxGeometry(W-0.1,0.08,L-0.6),new THREE.MeshStandardMaterial({color:0x334155,roughness:.9}));
 floor.position.set(0,1.0,0);interior.add(floor);
+
+// Enhanced floor with texture detail
+const floorTexture = new THREE.Mesh(new THREE.BoxGeometry(W-0.1,0.01,L-0.6),new THREE.MeshStandardMaterial({color:0x1e293b,roughness:.8,metalness:.1}));
+floorTexture.position.set(0,1.04,0);interior.add(floorTexture);
+
 const seatMat=new THREE.MeshPhysicalMaterial({color:0x1d4ed8,roughness:.65,metalness:.06,clearcoat:.3,clearcoatRoughness:.55});
 const seatFrameMat=new THREE.MeshStandardMaterial({color:0x475569,roughness:.5,metalness:.55});
 const SEAT_ROWS=10, SEATS_PER_ROW=4, SEATED_CAP=SEAT_ROWS*SEATS_PER_ROW;
@@ -1464,14 +1469,36 @@ const seatPositions=[];
 for(let r=0;r<SEAT_ROWS;r++){
   const z=2.4-r*0.72;
   for(const sx of [-0.62,0.62]){
-    const cush=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.16,0.6),seatMat);
+    // Enhanced seat cushion with rounded shape
+    const cushGeo = new THREE.BoxGeometry(1.0,0.16,0.6);
+    const cush=new THREE.Mesh(cushGeo,seatMat);
     cush.position.set(sx,1.44,z);interior.add(cush);
-    const back=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.72,0.14),seatMat);
+    
+    // Seat cushion piping/detail
+    const pipingMat=new THREE.MeshStandardMaterial({color:0x0f172a,roughness:.8});
+    const piping=new THREE.Mesh(new THREE.TorusGeometry(0.52,0.012,8,16),pipingMat);
+    piping.position.set(sx,1.38,z);piping.rotation.x=Math.PI/2;interior.add(piping);
+    
+    // Enhanced seat back with ergonomic shape
+    const backGeo = new THREE.BoxGeometry(1.0,0.72,0.14);
+    const back=new THREE.Mesh(backGeo,seatMat);
     back.position.set(sx,1.72,z-0.28);back.rotation.x=-0.14;interior.add(back);
+    
+    // Seat back piping
+    const backPiping=new THREE.Mesh(new THREE.TorusGeometry(0.52,0.01,8,16),pipingMat);
+    backPiping.position.set(sx,1.72,z-0.28);backPiping.rotation.x=-0.14;backPiping.rotation.y=Math.PI/2;interior.add(backPiping);
+    
     const fr=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.42,0.12),seatFrameMat);
     fr.position.set(sx,1.22,z-0.28);interior.add(fr);
-    const armrest=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.42,0.55),new THREE.MeshStandardMaterial({color:0x94a3b8,roughness:.55,metalness:.6}));
+    
+    // Enhanced armrest with padding
+    const armrestMat=new THREE.MeshPhysicalMaterial({color:0x1d4ed8,roughness:.6,metalness:.05,clearcoat:.3,clearcoatRoughness:.5});
+    const armrest=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.42,0.55),armrestMat);
     armrest.position.set(sx+0.36,1.56,z);interior.add(armrest);
+    
+    // Armrest piping
+    const armPiping=new THREE.Mesh(new THREE.TorusGeometry(0.04,0.008,6,12),pipingMat);
+    armPiping.position.set(sx+0.36,1.35,z);armPiping.rotation.x=Math.PI/2;interior.add(armPiping);
   }
   for(const c of [-0.85,-0.35,0.35,0.85]) seatPositions.push(new THREE.Vector3(c,1.52,z));
 }
@@ -1891,27 +1918,69 @@ const rubber=new THREE.MeshStandardMaterial({color:0x111827,roughness:.95});
 const hubMat=new THREE.MeshStandardMaterial({color:0x94a3b8,metalness:.65,roughness:.35});
 function wheelMesh(r,w){
   const g=new THREE.Group();
-  const tireGeo=new THREE.CylinderGeometry(r,r,w,22);
-  const tireMat=new THREE.MeshStandardMaterial({color:0x111827,roughness:.95});
+  const tireGeo=new THREE.CylinderGeometry(r,r,w,32);
+  const tireMat=new THREE.MeshStandardMaterial({color:0x111827,roughness:.95,metalness:0});
+  
+  // Enhanced tire with realistic tread pattern
   const tire=new THREE.Mesh(tireGeo,tireMat);tire.rotation.z=Math.PI/2;tire.castShadow=true;g.add(tire);
   
-  // Enhanced rim with better geometry
-  const rimGeo=new THREE.CylinderGeometry(r*0.55,r*0.55,w+0.05,16);
-  const rimMat=new THREE.MeshStandardMaterial({color:0x94a3b8,metalness:.75,roughness:.3});
-  const rim=new THREE.Mesh(rimGeo,rimMat);rim.rotation.z=Math.PI/2;g.add(rim);
+  // Add tire tread grooves - front/rear differentiation
+  const treadCount = r > 0.6 ? 24 : 16;
+  for(let i = 0; i < treadCount; i++){
+    const angle = (i / treadCount) * Math.PI * 2;
+    const treadLen = r > 0.6 ? 0.18 : 0.12;
+    const treadWidth = r > 0.6 ? 0.06 : 0.04;
+    
+    const treadPath = new THREE.Shape();
+    treadPath.moveTo(0, 0);
+    treadPath.lineTo(0, -treadLen);
+    
+    const treadGeom = new THREE.ShapeGeometry(treadPath);
+    treadGeom.scale(r - 0.05, treadWidth);
+    const tread = new THREE.Mesh(treadGeom, tireMat);
+    tread.rotation.z = angle;
+    tread.position.y = -r + 0.02;
+    g.add(tread);
+  }
   
-  // Enhanced spokes visualization
-  const spokeGeo=new THREE.BoxGeometry(0.04,1.2,0.03);
-  const spokeMat=new THREE.MeshStandardMaterial({color:0x94a3b8,metalness:.9});
-  const spokes=[[-1,-0.4,0.8],[-0.6,0.2,-0.8],[-0.2,-0.6,0.5],[0.3,0.4,-0.5]];
-  spokes.forEach(([x,y,z])=>{
-    const s=new THREE.Mesh(spokeGeo,spokeMat);s.position.set(x,y,z);s.rotation.z=Math.atan2(y,z);g.add(s);
-  });
+  // Enhanced rim with multi-part design
+  const rimExternal = new THREE.Mesh(
+    new THREE.CylinderGeometry(r*0.58,r*0.58,w+0.03,32),
+    new THREE.MeshStandardMaterial({color:0x94a3b8,metalness:.8,roughness:.2})
+  );
+  rimExternal.rotation.z=Math.PI/2;g.add(rimExternal);
   
-  // Enhanced tire rim center cap
-  const capGeo=new THREE.CylinderGeometry(r*0.3,0.05,0.04,8);
-  const capMat=new THREE.MeshStandardMaterial({color:0x64748b,metalness:.8});
-  const cap=new THREE.Mesh(capGeo,capMat);cap.position.set(0,0.3,0);g.add(cap);
+  const rimInternal = new THREE.Mesh(
+    new THREE.CylinderGeometry(r*0.45,r*0.45,w+0.02,32),
+    new THREE.MeshStandardMaterial({color:0x64748b,metalness:.9,roughness:.1})
+  );
+  rimInternal.rotation.z=Math.PI/2;g.add(rimInternal);
+  
+  // Rim center cap with Volvo/branding detail
+  const capGeo = new THREE.CylinderGeometry(r*0.3,0,0.03,16);
+  const capMat = new THREE.MeshStandardMaterial({color:0x64748b,metalness:.9});
+  const cap = new THREE.Mesh(capGeo, capMat); cap.position.set(0,0.35,0); g.add(cap);
+  
+  // Rim bolts/nuts detail
+  for(let i = 0; i < 8; i++){
+    const angle = (i / 8) * Math.PI * 2 - Math.PI/4;
+    const bolt = new THREE.Mesh(
+      new THREE.SphereGeometry(0.015, 6, 4),
+      new THREE.MeshStandardMaterial({color:0xcbd5e1,metalness:1,roughness:0})
+    );
+    bolt.position.set(Math.cos(angle) * (r * 0.52), 0, Math.sin(angle) * (r * 0.52));
+    bolt.rotation.z = angle;
+    g.add(bolt);
+  }
+  
+  //Valve stem
+  const valve = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.01, 0.015, 0.15, 6),
+    new THREE.MeshStandardMaterial({color:0xcbd5e1,metalness:1,roughness:0})
+  );
+  valve.position.set(0, -r + 0.12, 0);
+  valve.rotation.z = Math.PI/2;
+  g.add(valve);
   
   return g;
 }
@@ -1938,19 +2007,59 @@ const wheelArchLinerMat=new THREE.MeshStandardMaterial({color:0x17232a,roughness
   });
 });
 
-// lights
+// lights - Enhanced with realistic headlight housings
 const headMat=new THREE.MeshBasicMaterial({color:0xfff3c4});
+const headHousingMat=new THREE.MeshStandardMaterial({color:0x0f172a,roughness:.5,metalness:.4});
+
+// Left headlight assembly
+const hlHousingL=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.3,0.18),headHousingMat);
+hlHousingL.position.set(-0.82,1.05,L/2+0.02);shell.add(hlHousingL);
 const hlL=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.22,0.1),headMat);
 hlL.position.set(-0.82,1.05,L/2+0.02);shell.add(hlL);
+
+// Right headlight assembly
+const hlHousingR=hlHousingL.clone();hlHousingR.position.x=0.82;shell.add(hlHousingR);
 const hlR=hlL.clone();hlR.position.x=0.82;shell.add(hlR);
-const tailMat=new THREE.MeshBasicMaterial({color:0x7f1d1d});
+
+// Enhanced taillights with brake light housings
+const tailHousingMat=new THREE.MeshStandardMaterial({color:0x0f172a,roughness:.5,metalness:.4});
+const tlHousingL=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.35,0.18),tailHousingMat);
+tlHousingL.position.set(-0.85,1.05,-L/2-0.02);shell.add(tlHousingL);
 const tlL=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,0.1),tailMat);
 tlL.position.set(-0.85,1.05,-L/2-0.02);shell.add(tlL);
+
+const tlHousingR=tlHousingL.clone();tlHousingR.position.x=0.85;shell.add(tlHousingR);
 const tlR=tlL.clone();tlR.position.x=0.85;shell.add(tlR);
+
+// Enhanced beam lights with better spread
 const beamL=new THREE.SpotLight(0xfff7ed,0,90,Math.PI/7,0.45);
 beamL.position.set(-0.8,1.1,L/2);beamL.target.position.set(-0.8,0,L/2+40);shell.add(beamL);shell.add(beamL.target);
 const beamR=new THREE.SpotLight(0xfff7ed,0,90,Math.PI/7,0.45);
 beamR.position.set(0.8,1.1,L/2);beamR.target.position.set(0.8,0,L/2+40);shell.add(beamR);shell.add(beamR.target);
+
+// Additional interior cabin lights
+const cabinLightMat=new THREE.MeshBasicMaterial({color:0xfff6df});
+const cabinLight=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.06,7.4),cabinLightMat);
+cabinLight.position.set(0,2.92,-0.4);interior.add(cabinLight);
+const cabinLamp=new THREE.PointLight(0xffe9c4,0,9,2);
+cabinLamp.position.set(0,2.6,0);shell.add(cabinLamp);
+
+// Additional exterior lights - marker lights, running lights
+const markerLightMat=new THREE.MeshBasicMaterial({color:0xfff3c4});
+const markerLightL=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,0.04),markerLightMat);
+markerLightL.position.set(-1.2,1.8,L/2+0.05);shell.add(markerLightL);
+const markerLightR=markerLightL.clone();markerLightR.position.x=1.2;shell.add(markerLightR);
+
+// Side marker lights on rear
+const rearMarkerMat=new THREE.MeshBasicMaterial({color:0xff4444});
+const rearMarkerL=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,0.04),rearMarkerMat);
+rearMarkerL.position.set(-1.2,1.8,-L/2-0.05);shell.add(rearMarkerL);
+const rearMarkerR=rearMarkerL.clone();rearMarkerR.position.x=1.2;shell.add(rearMarkerR);
+
+// License plate light
+const plateLightMat=new THREE.MeshBasicMaterial({color:0xfff3c4});
+const plateLight=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.05,0.04),plateLightMat);
+plateLight.position.set(0,0.5,-L/2-0.08);shell.add(plateLight);
 
 /* ---------- live destination blind (front + rear) ---------- */
 let blindLabel='CITY LOOP';
