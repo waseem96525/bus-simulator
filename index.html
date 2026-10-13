@@ -1755,12 +1755,12 @@ for(const [x,z] of [[-0.92,L/2-0.25],[-0.48,L/2-0.25]]){
 
 // driver figure
 const PAXGEO={
-  head:new THREE.SphereGeometry(0.12,10,8),
-  torso:new THREE.CylinderGeometry(0.16,0.19,0.58,12),
-  neck:new THREE.CylinderGeometry(0.05,0.06,0.08,8),
-  nose:new THREE.ConeGeometry(0.025,0.09,6),
+  head:new THREE.SphereGeometry(0.12,24,20),
+  torso:new THREE.CylinderGeometry(0.16,0.19,0.58,24),
+  neck:new THREE.CylinderGeometry(0.05,0.06,0.08,16),
+  nose:new THREE.ConeGeometry(0.025,0.09,16),
   face:new THREE.PlaneGeometry(0.18,0.09),
-  hair:new THREE.SphereGeometry(0.128,10,8,0,Math.PI*2,0,Math.PI/2),
+  hair:new THREE.SphereGeometry(0.128,24,18,0,Math.PI*2,0,Math.PI/2),
   shirtDetail:new THREE.BoxGeometry(0.045,0.4,0.018),
   hip:new THREE.BoxGeometry(0.3,0.18,0.2),
   legUpper:new THREE.BoxGeometry(0.16,0.44,0.19),
@@ -1769,18 +1769,32 @@ const PAXGEO={
   shoeSole:new THREE.BoxGeometry(0.17,0.035,0.29),
   arm:new THREE.BoxGeometry(0.09,0.5,0.09),
   forearm:new THREE.BoxGeometry(0.08,0.42,0.08),
-  hand:new THREE.SphereGeometry(0.055,8,8),
+  hand:new THREE.SphereGeometry(0.055,16,12),
   bag:new THREE.BoxGeometry(0.18,0.34,0.14),
-  bagStrap:new THREE.BoxGeometry(0.035,0.38,0.025)
+  bagStrap:new THREE.BoxGeometry(0.035,0.38,0.025),
+  ear:new THREE.SphereGeometry(0.035,12,10),
+  collar:new THREE.BoxGeometry(0.28,0.06,0.18),
+  shoeLace:new THREE.BoxGeometry(0.02,0.01,0.08),
+  belt:new THREE.BoxGeometry(0.28,0.03,0.02),
+  watch:new THREE.BoxGeometry(0.06,0.03,0.03)
 };
-const SKINS=[0xf8d0b0,0xe5ac69,0xc68642,0x8d5524,0xffd9ac,0x4a3524].map(c=>new THREE.MeshLambertMaterial({color:c}));
-const SHIRTS=[0xef4444,0x3b82f6,0x22c55e,0xf59e0b,0xa855f7,0xec4899,0x14b8a6,0xe2e8f0,0x64748b,0xf97316,0x4f46ce,0x059669,0xdc2626,0x2563eb,0x0d9488].map(c=>new THREE.MeshLambertMaterial({color:c}));
-const PANTS=[0x1e293b,0x334155,0x27324a,0x475569,0x374151].map(c=>new THREE.MeshLambertMaterial({color:c}));
-const HAIRS=[0x1f2937,0x4b3720,0x8b5a2b,0x111827,0x6b7280,0xf59e0b,0xef4444,0x1e3a8a].map(c=>new THREE.MeshLambertMaterial({color:c}));
-const shirtDetailMaterial=new THREE.MeshLambertMaterial({color:0xf8fafc,transparent:true,opacity:0.34});
-const shoeMaterial=new THREE.MeshLambertMaterial({color:0x111827});
-const bagMaterial=new THREE.MeshLambertMaterial({color:0x334155});
-const bagStrapMaterial=new THREE.MeshLambertMaterial({color:0x0f172a});
+const SKINS_RAW=[0xf8d0b0,0xe5ac69,0xc68642,0x8d5524,0xffd9ac,0x4a3524];
+const SHIRTS_RAW=[0xef4444,0x3b82f6,0x22c55e,0xf59e0b,0xa855f7,0xec4899,0x14b8a6,0xe2e8f0,0x64748b,0xf97316,0x4f46ce,0x059669,0xdc2626,0x2563eb,0x0d9488];
+const PANTS_RAW=[0x1e293b,0x334155,0x27324a,0x475569,0x374151];
+const HAIRS_RAW=[0x1f2937,0x4b3720,0x8b5a2b,0x111827,0x6b7280,0xf59e0b,0xef4444,0x1e3a8a];
+const SKINS=SKINS_RAW.map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.7,metalness:.05}));
+const SHIRTS=SHIRTS_RAW.map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.65,metalness:.1}));
+const PANTS=PANTS_RAW.map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.75,metalness:.08}));
+const HAIRS=HAIRS_RAW.map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.8,metalness:.15}));
+const shirtDetailMaterial=new THREE.MeshStandardMaterial({color:0xf8fafc,roughness:.3,metalness:.05,transparent:true,opacity:0.34});
+const shoeMaterial=new THREE.MeshStandardMaterial({color:0x111827,roughness:.3,metalness:.4});
+const bagMaterial=new THREE.MeshStandardMaterial({color:0x334155,roughness:.6,metalness:.1});
+const bagStrapMaterial=new THREE.MeshStandardMaterial({color:0x0f172a,roughness:.5,metalness:.3});
+const earMaterial=new THREE.MeshStandardMaterial({color:0xf8d0b0,roughness:.7,metalness:.05});
+const collarMaterial=new THREE.MeshStandardMaterial({color:0xf8fafc,roughness:.3,metalness:.05});
+const shoeLaceMaterial=new THREE.MeshStandardMaterial({color:0xf8fafc,roughness:.2,metalness:.1});
+const beltMaterial=new THREE.MeshStandardMaterial({color:0x3f1d1d,roughness:.4,metalness:.6});
+const watchMaterial=new THREE.MeshStandardMaterial({color:0x1f2937,roughness:.2,metalness:.8});
 const faceCanvas=document.createElement('canvas');faceCanvas.width=128;faceCanvas.height=64;
 const faceCtx=faceCanvas.getContext('2d');
 faceCtx.fillStyle='#fff';faceCtx.beginPath();faceCtx.ellipse(43,25,8,5,0,0,Math.PI*2);faceCtx.ellipse(85,25,8,5,0,0,Math.PI*2);faceCtx.fill();
@@ -1808,11 +1822,23 @@ function makePerson(opts){
   const nose=new THREE.Mesh(PAXGEO.nose,skin);nose.rotation.x=Math.PI/2;nose.position.set(0,1.48,0.12);g.add(nose);
   const face=new THREE.Mesh(PAXGEO.face,faceMaterial);
   face.position.set(0,1.52,0.115);g.add(face);
+  
+  // Enhanced detail: ears
+  const earL=new THREE.Mesh(PAXGEO.ear,earMaterial);earL.position.set(-0.12,1.53,0.1);g.add(earL);
+  const earR=earL.clone();earR.position.x=0.12;g.add(earR);
+  
+  // Enhanced detail: collars
+  const collar=new THREE.Mesh(PAXGEO.collar,collarMaterial);collar.position.y=1.02;g.add(collar);
+  const collarLower=new THREE.Mesh(PAXGEO.collar,collarMaterial);collarLower.position.y=0.7;collarLower.scale.set(0.8,0.6,0.8);g.add(collarLower);
+  
   const cap=new THREE.Mesh(PAXGEO.hair,hair);
   cap.position.y=1.62;
   const hairStyle=Math.random();
   cap.scale.set(hairStyle<0.25?0.92:1.05,hairStyle<0.25?0.54:0.78,hairStyle<0.25?1.18:1.08);
   g.add(cap);
+
+  // Enhanced detail: belt
+  const belt=new THREE.Mesh(PAXGEO.belt,beltMaterial);belt.position.y=0.72;g.add(belt);
 
   const hip=new THREE.Mesh(PAXGEO.hip,pants);
   hip.position.y=0.6;g.add(hip);
@@ -1823,6 +1849,8 @@ function makePerson(opts){
   const legLShin=new THREE.Mesh(PAXGEO.legShin,pants);legLShin.position.y=-0.18;kneeL.add(legLShin);
   const shoeL=new THREE.Mesh(PAXGEO.shoe,shoeMaterial);shoeL.position.set(0,-0.38,0.045);kneeL.add(shoeL);
   const soleL=new THREE.Mesh(PAXGEO.shoeSole,shoeSoleMaterial);soleL.position.set(0,-0.422,0.045);kneeL.add(soleL);
+  // Shoelaces
+  const laceL=new THREE.Mesh(PAXGEO.shoeLace,shoeLaceMaterial);laceL.position.set(-0.03,-0.38,0.06);kneeL.add(laceL);
   legL.position.set(-0.09,0.62,0);g.add(legL);
 
   const legR=new THREE.Group();
@@ -1831,6 +1859,7 @@ function makePerson(opts){
   const legRShin=new THREE.Mesh(PAXGEO.legShin,pants);legRShin.position.y=-0.18;kneeR.add(legRShin);
   const shoeR=new THREE.Mesh(PAXGEO.shoe,shoeMaterial);shoeR.position.set(0,-0.38,0.045);kneeR.add(shoeR);
   const soleR=new THREE.Mesh(PAXGEO.shoeSole,shoeSoleMaterial);soleR.position.set(0,-0.422,0.045);kneeR.add(soleR);
+  const laceR=laceL.clone();laceR.position.x=-0.03;kneeR.add(laceR);
   legR.position.set(0.09,0.62,0);g.add(legR);
 
   const armL=new THREE.Group();
@@ -1850,48 +1879,57 @@ function makePerson(opts){
     bag.position.set(0,0.94,-0.18);g.add(bag);
     const strap=new THREE.Mesh(PAXGEO.bagStrap,bagStrapMaterial);
     strap.position.set(0.07,1.03,-0.11);strap.rotation.z=-0.28;g.add(strap);
+    // Watch on wrist
+    const watch=new THREE.Mesh(PAXGEO.watch,watchMaterial);
+    watch.position.set(0.12,-0.36,0);armR.add(watch);
   }
 
+  // Cast shadows and receive shadows for all meshes
+  const setShadows=(obj)=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true;}};
+  g.traverse(setShadows);
+
   if(opts.scale)g.scale.setScalar(opts.scale);
-  return {group:g,torso,head,legL,legR,kneeL,kneeR,armL,armR,bag,phase:Math.random()*6.28,baseY:0,sitting:false,restYaw:0};
+  return {group:g,torso,head,legL,legR,kneeL,kneeR,armL,armR,bag,phase:Math.random()*6.28,baseY:0,sitting:false,restYaw:0,reactionSpeed:1};
 }
 function animatePerson(p,t,moving){
-  p.phase += t * (moving ? 7.5 : 1.2);
-  const s = moving ? 0.58 : 0.035;
+  p.phase += t * (moving ? 12 : 3);  // Faster phase progression
+  const s = moving ? 1.1 : 0.07;
   const swing = Math.sin(p.phase) * s;
   const seated=p.sitting&&!moving;
-  p.legL.rotation.x=seated?-0.85:swing;
-  p.legR.rotation.x=seated?-0.85:-swing;
-  p.kneeL.rotation.x=seated?1.12:Math.max(0,swing)*0.7;
-  p.kneeR.rotation.x=seated?1.12:Math.max(0,-swing)*0.7;
-  p.armL.rotation.x=seated?-0.28:-swing*0.62;
-  p.armR.rotation.x=seated?-0.28:swing*0.62;
+  p.legL.rotation.x=seated?-0.95:swing;
+  p.legR.rotation.x=seated?-0.95:-swing;
+  p.kneeL.rotation.x=seated?1.12:Math.max(0,swing)*0.9;
+  p.kneeR.rotation.x=seated?1.12:Math.max(0,-swing)*0.9;
+  p.armL.rotation.x=seated?-0.32:-swing*0.75;
+  p.armR.rotation.x=seated?-0.32:swing*0.75;
   p.armL.rotation.z=seated?-0.12:0;
   p.armR.rotation.z=seated?0.12:0;
 
   if (p.head) {
-    p.head.rotation.y=Math.sin(p.phase*0.42)*0.12;
-    p.head.rotation.x=Math.sin(p.phase*0.34)*0.035;
+    p.head.rotation.y=Math.sin(p.phase*0.55)*0.2;  // More head movement
+    p.head.rotation.x=Math.sin(p.phase*0.45)*0.05;
   }
   if (p.torso) {
-    p.torso.rotation.z=seated?Math.sin(p.phase*0.5)*0.012:Math.sin(p.phase)*0.035;
-    p.torso.rotation.x=seated?0:Math.sin(p.phase*1.2)*0.025;
+    p.torso.rotation.z=seated?Math.sin(p.phase*0.6)*0.025:Math.sin(p.phase)*0.05;
+    p.torso.rotation.x=seated?0:Math.sin(p.phase*1.4)*0.035;
   }
   if (p.bag) {
-    p.bag.rotation.z=Math.sin(p.phase*1.1)*(moving?0.055:0.015);
+    p.bag.rotation.z=Math.sin(p.phase*1.3)*(moving?0.08:0.02);
   }
 
   if(!moving){
-    p.group.position.y=(p.baseY||0)+Math.sin(p.phase*0.8)*(seated?0.004:0.008);
-    p.group.rotation.y=p.restYaw+Math.sin(p.phase*0.45)*0.012;
-    p.group.rotation.z=seated?0:Math.sin(p.phase)*0.012;
+    p.group.position.y=(p.baseY||0)+Math.sin(p.phase*1.5)*(seated?0.006:0.012);  // More subtle bounce
+    p.group.rotation.y=p.restYaw+Math.sin(p.phase*0.6)*0.02;
+    p.group.rotation.z=seated?0:Math.sin(p.phase)*0.018;
   }else{
-    const bob=Math.abs(Math.sin(p.phase*2))*0.018;
+    const bob=Math.abs(Math.sin(p.phase*3))*0.03;
     p.group.position.y=(p.baseY||0)+bob;
-    const lean=Math.sin(p.phase)*0.045;
+    const lean=Math.sin(p.phase)*0.08;
     p.group.rotation.z = lean;
-    p.group.rotation.x=Math.sin(p.phase*0.6)*0.018;
+    p.group.rotation.x=Math.sin(p.phase*0.8)*0.03;
   }
+  // Reaction to events - faster state transitions
+  if(p.reactionSpeed)p.reactionSpeed-=t*3;  // Decay reaction speed
 }
 const driver=makePerson({shirt:SHIRTS[0],scale:0.95});
 driver.group.position.set(-0.72,1.04,L/2-1.6);
@@ -3070,6 +3108,8 @@ function toggleDoors(){
     toast('Doors closed',1200);
     if(S.dwelling)cancelDwell('Doors closed — service cancelled, stay at the stop');
   }
+  // Trigger passenger reactions to door events
+  triggerPassengerReaction('door', 25);
 }
 /* the horn: scatters pedestrians and clears broken-down vehicles */
 function soundHorn(on){
@@ -3280,7 +3320,41 @@ function scatterPedestrians(){
     const dx=w.group.position.x-bus.position.x,dz=w.group.position.z-bus.position.z;
     if(dx*dx+dz*dz<400){w.flee=1.6;n++;}
   }
+  // Trigger passenger reactions to horn
+  triggerPassengerReaction('horn', 15);
   return n;
+}
+
+function triggerPassengerReaction(type, range){
+  // React waiting passengers at stops
+  stops.forEach(stop=>{
+    const dx=stop.centre.x-bus.position.x,dz=stop.centre.z-bus.position.z;
+    if(dx*dx+dz*dz<range*range){
+      stop.queue.forEach(p=>{
+        if(p.mesh&&p.mesh.reactionSpeed!==undefined){
+          p.mesh.reactionSpeed=1.5;  // Boost reaction speed temporarily
+          // Quick head turn toward bus
+          if(p.mesh.head){
+            const dir=Math.atan2(bus.position.x-p.mesh.group.position.x, bus.position.z-p.mesh.group.position.z);
+            p.mesh.head.rotation.y=dir-p.mesh.group.rotation.y;
+          }
+        }
+      });
+    }
+  });
+  // React onboard passengers
+  onboard.forEach(p=>{
+    if(p.mesh&&p.mesh.reactionSpeed!==undefined){
+      p.mesh.reactionSpeed=1.2;
+    }
+  });
+  // React walkers near bus
+  walkers.forEach(w=>{
+    const dx=w.group.position.x-bus.position.x,dz=w.group.position.z-bus.position.z;
+    if(dx*dx+dz*dz<range*range){
+      w.reactionSpeed=1.8;
+    }
+  });
 }
 /* =========================================================================
    10. PASSENGER SERVICE
