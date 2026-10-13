@@ -516,7 +516,8 @@ const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-per
 renderer.setSize(innerWidth,innerHeight);
 const lowPowerMode = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
   (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
-const maxPixelRatio = lowPowerMode ? 1.25 : 1.75;
+const isSmallScreen = window.matchMedia('(max-width: 700px)').matches;
+const maxPixelRatio = lowPowerMode ? 1.25 : (isSmallScreen ? 1.5 : 1.75);
 renderer.setPixelRatio(Math.min(devicePixelRatio, maxPixelRatio));
 renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.shadowMap.enabled=!lowPowerMode;
@@ -541,7 +542,7 @@ if (typeof THREE.EffectComposer !== 'undefined' && !lowPowerMode) {
 
 function updateRendererQuality(){
   if(!renderer)return;
-  const ratio = Math.min(window.devicePixelRatio || 1, lowPowerMode ? 1.25 : 1.75);
+  const ratio = Math.min(window.devicePixelRatio || 1, lowPowerMode ? 1.25 : (isSmallScreen ? 1.5 : 1.75));
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -569,7 +570,7 @@ function drawSky(top,bot){
 }
 const SKY_KEYS=[
   {h:5.5, top:0x070c18,bot:0x2a3a55,sun:0.02,amb:0.18,dark:1},
-  {h:6.8, top:0x354b61,bot:0x9aabba,sun:0.1,amb:0.42,dark:1},
+  {h:6.8, top:0x354b61,bot:0x9aabba,sun:0.1,amb:0.42,dark:0},
   {h:8.5, top:0x5c7892,bot:0xb1c1cf,sun:0.18,amb:0.68,dark:0},
   {h:13.0,top:0x63819b,bot:0xbacbd8,sun:0.24,amb:0.74,dark:0},
   {h:16.9,top:0x788a9a,bot:0xc4bba7,sun:0.18,amb:0.62,dark:0},
@@ -602,15 +603,15 @@ function applyTimeOfDay(force){
     scene.background.setHex(0x0b1220);
     scene.fog.color.setHex(0x141d29);
     scene.fog.density=0.0062;
-    sunLight.intensity=0.09;sunLight.color.setHex(0x9fb3c8);
-    hemi.intensity=0.26;
-    fillLight.intensity=0.15;fillLight.color.setHex(0x2a3a4a);
+    sunLight.intensity=0.32;sunLight.color.setHex(0x9fb3c8);
+    hemi.intensity=0.48;
+    fillLight.intensity=0.22;fillLight.color.setHex(0x2a3a4a);
     S.dark=1;
   }else{
     scene.background.setHex(horizon);
     scene.fog.color.setHex(horizon);
     scene.fog.density=hour>6.4&&hour<18.6?0.00055:0.0012;
-    sunLight.intensity=k.sun*0.12;
+    sunLight.intensity=k.sun*8;
     sunLight.color.setHex(k.sun<0.6?0xffb877:0xfff6e5);
     hemi.intensity=k.amb;
     fillLight.intensity=k.amb*0.3;
@@ -619,10 +620,11 @@ function applyTimeOfDay(force){
   // sun / moon travels across the sky
   const ang=clamp((hour-5.5)/(19.5-5.5),0,1)*Math.PI;
   const y=Math.sin(ang),xz=Math.cos(ang);
-  sunLight.position.set(xz*180,Math.max(20,y*180),70);
+  sunOffset.set(xz*180,Math.max(20,y*180),70);
+  sunLight.position.copy(sunOffset);
   sunDisc.position.set(xz*560,Math.max(30,y*560),-320);
   sunDisc.material.color.setHex(raining?0x8ea3b8:(y>0.08?0xfff3c4:0xdfe8ff));
-  sunDisc.visible=false;
+  sunDisc.visible=!raining;
   
   // Dynamic fog density based on time of day
   if(k.dark&&!raining){
@@ -638,11 +640,12 @@ const hemi=new THREE.HemisphereLight(0xffffff,0x3f4a3a,0.7);scene.add(hemi);
 const sunLight=new THREE.DirectionalLight(0xfff6e5,1.15);
 sunLight.position.set(140,190,110);sunLight.castShadow=true;
 sunLight.shadow.mapSize.set(2048,2048);
-sunLight.shadow.camera.near=20;sunLight.shadow.camera.far=520;
-const SD=300;
+sunLight.shadow.camera.near=1;sunLight.shadow.camera.far=420;
+const SD=140;
 sunLight.shadow.camera.left=-SD;sunLight.shadow.camera.right=SD;sunLight.shadow.camera.top=SD;sunLight.shadow.camera.bottom=-SD;
-sunLight.shadow.bias=-0.0009;
-scene.add(sunLight);
+sunLight.shadow.bias=-0.0005;
+const sunOffset=new THREE.Vector3(140,190,110);
+scene.add(sunLight,sunLight.target);
 
 // Ambient fill light for better shadow detail
 const fillLight=new THREE.HemisphereLight(0xaaccee,0x3a4a5a,0.35);
@@ -3290,6 +3293,12 @@ function updateCamera(dt){
   }
   camera.position.lerp(want,1-Math.pow(0.0015,dt));
   camera.lookAt(look);
+  const targetFov=S.camera===1?58:58+Math.min(Math.abs(S.speed)/S.maxSpeed,1)*4;
+  if(Math.abs(camera.fov-targetFov)>0.05){
+    camera.fov=lerp(camera.fov,targetFov,1-Math.pow(0.0015,dt));
+    camera.updateProjectionMatrix();
+  }
+  camera.rotateZ(-rideState.roll*0.16);
 }
 
 const rideState={
@@ -3607,6 +3616,8 @@ function animate(){
   frames++;
 
   updateDriving(dt);
+  sunLight.target.position.copy(bus.position);
+  sunLight.position.copy(bus.position).add(sunOffset);
   skyDome.position.set(camera.position.x,0,camera.position.z);
   updateDocking(dt);
   updateLights(dt);
