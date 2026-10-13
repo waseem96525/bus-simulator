@@ -440,8 +440,17 @@
       <option value="crownline">Aurelia Crownline · Gold Edition</option>
       <option value="riviera">Elysian Riviera · Pearl Edition</option>
       <option value="nightliner">Sovereign Nightliner · Executive Suite</option>
+      <option value="cityrunner">Metroline Cityrunner · $4,200</option>
+      <option value="voltliner">Volta E-Liner · $6,800</option>
     </select>
     <p id="busDescription" class="w-full -mt-3 mb-4 text-left text-[10px] text-slate-400"></p>
+    <div class="w-full flex flex-wrap gap-2 mb-4">
+      <button id="btnOpenGarage" class="btn-action flex-1 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs font-black text-cyan-200">🛒 BUS SHOP</button>
+      <button id="btnSaveGame" class="btn-action rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200">SAVE GAME</button>
+      <button id="btnLoadGame" class="btn-action rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-200">LOAD GAME</button>
+    </div>
+    <div id="careerBalance" class="w-full mb-4 text-left text-xs font-bold text-emerald-300"></div>
+    <div id="careerNotice" class="w-full mb-3 text-left text-[11px] text-slate-300" role="status" aria-live="polite"></div>
     <label class="w-full text-left text-[10px] font-black uppercase text-slate-400 mb-1" for="contractSelect">Choose your shift challenge</label>
     <select id="contractSelect" class="w-full mb-4 rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm font-bold text-white pointer-events-auto">
       <option value="random" selected>Surprise me · Random contract</option>
@@ -466,7 +475,50 @@
     <div id="resGrade" class="text-5xl font-black hud-font text-amber-400 mb-1">A</div>
     <div class="text-[11px] text-slate-400 font-bold tracking-widest mb-4">SHIFT COMPLETE</div>
     <div id="resStats" class="text-xs text-slate-200 space-y-1.5 mb-5 text-left"></div>
+    <div id="resultsCareerNotice" class="mb-2 text-xs text-slate-300" role="status" aria-live="polite"></div>
+    <div class="flex gap-2 mb-2">
+      <button id="btnResultsShop" class="btn-action flex-1 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs font-black text-cyan-200">🛒 BUS SHOP</button>
+      <button id="btnResultsSave" class="btn-action flex-1 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200">SAVE GAME</button>
+    </div>
+    <div id="resultsCareerBalance" class="mb-3 text-xs font-bold text-emerald-300"></div>
+    <button id="btnResultsDepot" class="btn-action w-full mb-2 rounded-xl border border-slate-500/40 bg-slate-700/40 px-3 py-2 text-xs font-black text-slate-200">RETURN TO DEPOT</button>
     <button id="btnRestart" class="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-black hud-font tracking-wider active:scale-95 transition-transform">START NEW SHIFT</button>
+  </div>
+</div>
+
+<!-- ======================= BUS SHOP ======================= -->
+<div id="garageOverlay" class="hidden absolute inset-0 z-[60] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-3 sm:p-5 pointer-events-auto">
+  <div class="glass-panel flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-cyan-400/30">
+    <div class="flex items-center justify-between gap-3 border-b border-slate-700 p-4 sm:p-5">
+      <div>
+        <div class="hud-font text-lg font-black text-white">🚌 FLEET GARAGE</div>
+        <div class="text-xs text-slate-400">Buy coaches, fit upgrades and save funds, fleet and progress on this device.</div>
+      </div>
+      <div class="text-right">
+        <div class="text-[9px] font-bold uppercase text-slate-400">Career balance</div>
+        <div id="garageBalance" class="mono-font text-lg font-black text-emerald-300">$0.00</div>
+      </div>
+    </div>
+    <div class="hidescroll flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+      <section>
+        <h2 class="mb-2 text-xs font-black uppercase tracking-widest text-cyan-200">Coaches</h2>
+        <div id="garageVehicleList" class="grid gap-2 sm:grid-cols-2"></div>
+      </section>
+      <section>
+        <h2 class="mb-2 text-xs font-black uppercase tracking-widest text-amber-200">Performance upgrades</h2>
+        <div id="garageUpgradeList" class="grid gap-2 sm:grid-cols-2"></div>
+      </section>
+      <section>
+        <h2 class="mb-2 text-xs font-black uppercase tracking-widest text-fuchsia-200">Accessories</h2>
+        <div id="garageAccessoryList" class="grid gap-2 sm:grid-cols-2"></div>
+      </section>
+      <div id="garageNotice" class="text-xs text-slate-300" role="status" aria-live="polite"></div>
+    </div>
+    <div class="flex gap-2 border-t border-slate-700 p-3 sm:p-4">
+      <button id="btnGarageSave" class="btn-action flex-1 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200">SAVE GAME</button>
+      <button id="btnGarageLoad" class="btn-action flex-1 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-200">LOAD GAME</button>
+      <button id="btnGarageClose" class="btn-action rounded-xl bg-slate-700 px-5 py-2 text-xs font-black text-white">CLOSE GARAGE</button>
+    </div>
   </div>
 </div>
 
@@ -1296,10 +1348,19 @@ const ROUTES={
 
 const routeSelect=document.getElementById('routeSelect');
 const rememberedRoute=sessionStorage.getItem('selectedRoute');
-let CURRENT_ROUTE=ROUTES[rememberedRoute]?rememberedRoute:(routeSelect?.value||'long');
+let savedCareerRoute=null;
+try{
+  const savedCareer=JSON.parse(localStorage.getItem('metro-transit-career-v1')||'null');
+  if(savedCareer&&ROUTES[savedCareer.savedRoute])savedCareerRoute=savedCareer.savedRoute;
+}catch(error){
+  console.warn('Saved route could not be read:',error);
+}
+let CURRENT_ROUTE=ROUTES[rememberedRoute]?rememberedRoute:(savedCareerRoute||routeSelect?.value||'long');
 if(routeSelect){
   routeSelect.value=CURRENT_ROUTE;
   routeSelect.addEventListener('change',()=>{
+    garage.savedRoute=routeSelect.value;
+    persistGarage();
     sessionStorage.setItem('selectedRoute',routeSelect.value);
     location.reload();
   });
@@ -1541,18 +1602,210 @@ const BUS_MODELS={
     body:0x501f35,trim:0xc7cbd1,accent:0xe7edf2,glass:0x211d30,
     stripe:0xb9c5d2,hub:0xe1e6ed,fascia:'sovereign',
     detail:'Burgundy overnight coach with brushed-silver appointments'
+  },
+  cityrunner:{
+    name:'Metroline Cityrunner',
+    body:0x075985,trim:0xeab308,accent:0x67e8f9,glass:0x082f49,
+    stripe:0x38bdf8,hub:0xeab308,fascia:'city',
+    detail:'Agile city coach in transit blue with bright route accents',
+    price:4200
+  },
+  voltliner:{
+    name:'Volta E-Liner',
+    body:0x064e3b,trim:0xa3e635,accent:0x6ee7b7,glass:0x052e2b,
+    stripe:0x84cc16,hub:0xd9f99d,fascia:'electric',
+    detail:'Premium electric coach with a clean green-and-silver finish',
+    price:6800
   }
 };
+const CAREER_KEY='metro-transit-career-v1';
+const GAME_SAVE_KEY='metro-transit-save-v1';
+const STARTING_BUSES=['crownline','riviera','nightliner'];
+const UPGRADE_DEFS={
+  motor:{title:'Electric motor controller',description:'Improves acceleration by 12% per level.',cost:1250,max:3},
+  battery:{title:'Extended-range battery',description:'Reduces highway energy use by 18% per level.',cost:950,max:3},
+  seats:{title:'Passenger seat modules',description:'Adds 8 passenger spaces per level.',cost:1100,max:3}
+};
+const ACCESSORY_DEFS={
+  roofLights:{title:'LED roof light bar',description:'Adds a visible roof-mounted LED accessory.',cost:700},
+  wheelRims:{title:'Premium alloy wheel set',description:'Fits the coach with bright custom alloy rims.',cost:450}
+};
+function defaultGarage(){
+  return {
+    balance:0,
+    ownedBuses:[...STARTING_BUSES],
+    upgrades:{motor:0,battery:0,seats:0},
+    accessories:{roofLights:false,wheelRims:false},
+    activeBus:'crownline',
+    savedRoute:'long'
+  };
+}
+function normalizeGarage(data){
+  const garage=defaultGarage();
+  if(!data||typeof data!=='object')return garage;
+  if(Number.isFinite(data.balance))garage.balance=Math.max(0,data.balance);
+  if(Array.isArray(data.ownedBuses)){
+    garage.ownedBuses=[...new Set([...STARTING_BUSES,...data.ownedBuses.filter(id=>Object.prototype.hasOwnProperty.call(BUS_MODELS,id))])];
+  }
+  for(const [key,definition] of Object.entries(UPGRADE_DEFS)){
+    const level=data.upgrades?.[key];
+    if(Number.isFinite(level))garage.upgrades[key]=clamp(Math.floor(level),0,definition.max);
+  }
+  for(const key of Object.keys(ACCESSORY_DEFS))garage.accessories[key]=data.accessories?.[key]===true;
+  if(garage.ownedBuses.includes(data.activeBus))garage.activeBus=data.activeBus;
+  if(ROUTES[data.savedRoute])garage.savedRoute=data.savedRoute;
+  return garage;
+}
+function readGarageStorage(key){
+  try{
+    const value=localStorage.getItem(key);
+    return value?normalizeGarage(JSON.parse(value)):null;
+  }catch(error){
+    console.warn('Saved career could not be read:',error);
+    return null;
+  }
+}
+function careerNotice(message){
+  ['careerNotice','garageNotice','resultsCareerNotice'].forEach(id=>{
+    const element=document.getElementById(id);
+    if(element)element.textContent=message;
+  });
+}
+function persistGarage(){
+  try{
+    localStorage.setItem(CAREER_KEY,JSON.stringify(garage));
+    updateCareerBalance();
+    return true;
+  }catch(error){
+    console.error('Career save failed:',error);
+    careerNotice('Save failed. Check that browser storage is enabled and has free space.');
+    return false;
+  }
+}
+function updateCareerBalance(){
+  const value=fmtMoney(garage.balance);
+  const labels={careerBalance:'Career balance: '+value,garageBalance:value,resultsCareerBalance:'Available for next shift: '+value};
+  Object.entries(labels).forEach(([id,text])=>{
+    const element=document.getElementById(id);
+    if(element)element.textContent=text;
+  });
+}
+function renderGarage(){
+  updateCareerBalance();
+  const vehicles=document.getElementById('garageVehicleList');
+  const upgrades=document.getElementById('garageUpgradeList');
+  const accessories=document.getElementById('garageAccessoryList');
+  if(!vehicles||!upgrades||!accessories)return;
+  vehicles.innerHTML=Object.entries(BUS_MODELS).map(([id,bus])=>{
+    const owned=garage.ownedBuses.includes(id);
+    const active=garage.activeBus===id;
+    const action=owned
+      ?`<button class="btn-action rounded-lg px-3 py-2 text-[10px] font-black ${active?'bg-emerald-500/20 text-emerald-200':'bg-slate-700 text-white'}" data-garage-action="select-bus" data-id="${id}" ${active?'disabled':''}>${active?'IN SERVICE':'SELECT COACH'}</button>`
+      :`<button class="btn-action rounded-lg bg-cyan-500/20 px-3 py-2 text-[10px] font-black text-cyan-100" data-garage-action="buy-bus" data-id="${id}">BUY · ${fmtMoney(bus.price)}</button>`;
+    return `<article class="glass-panel flex items-center justify-between gap-3 rounded-xl p-3">
+      <div><div class="text-xs font-black text-white">${bus.name}</div><div class="mt-1 text-[10px] text-slate-400">${bus.detail}</div></div>${action}
+    </article>`;
+  }).join('');
+  upgrades.innerHTML=Object.entries(UPGRADE_DEFS).map(([id,item])=>{
+    const level=garage.upgrades[id];
+    const price=Math.round(item.cost*Math.pow(1.65,level));
+    const action=level>=item.max
+      ?'<span class="text-[10px] font-black text-emerald-300">MAX LEVEL</span>'
+      :`<button class="btn-action rounded-lg bg-amber-500/20 px-3 py-2 text-[10px] font-black text-amber-100" data-garage-action="buy-upgrade" data-id="${id}">UPGRADE · ${fmtMoney(price)}</button>`;
+    return `<article class="glass-panel flex items-center justify-between gap-3 rounded-xl p-3">
+      <div><div class="text-xs font-black text-white">${item.title} <span class="text-amber-300">LV ${level}/${item.max}</span></div><div class="mt-1 text-[10px] text-slate-400">${item.description}</div></div>${action}
+    </article>`;
+  }).join('');
+  accessories.innerHTML=Object.entries(ACCESSORY_DEFS).map(([id,item])=>{
+    const installed=garage.accessories[id];
+    const action=installed
+      ?'<span class="text-[10px] font-black text-emerald-300">INSTALLED</span>'
+      :`<button class="btn-action rounded-lg bg-fuchsia-500/20 px-3 py-2 text-[10px] font-black text-fuchsia-100" data-garage-action="buy-accessory" data-id="${id}">FIT · ${fmtMoney(item.cost)}</button>`;
+    return `<article class="glass-panel flex items-center justify-between gap-3 rounded-xl p-3">
+      <div><div class="text-xs font-black text-white">${item.title}</div><div class="mt-1 text-[10px] text-slate-400">${item.description}</div></div>${action}
+    </article>`;
+  }).join('');
+}
+function openGarage(){
+  renderGarage();
+  document.getElementById('garageOverlay').classList.remove('hidden');
+}
+function closeGarage(){
+  document.getElementById('garageOverlay').classList.add('hidden');
+}
+function saveGame(){
+  garage.activeBus=ACTIVE_BUS_MODEL;
+  garage.savedRoute=routeSelect.value;
+  try{
+    const snapshot=JSON.stringify(garage);
+    localStorage.setItem(CAREER_KEY,snapshot);
+    localStorage.setItem(GAME_SAVE_KEY,snapshot);
+    updateCareerBalance();
+    careerNotice('Game saved on this device.');
+    return true;
+  }catch(error){
+    console.error('Game save failed:',error);
+    careerNotice('Save failed. Check that browser storage is enabled and has free space.');
+    return false;
+  }
+}
+function loadGame(){
+  const saved=readGarageStorage(GAME_SAVE_KEY);
+  if(!saved){
+    careerNotice('No saved game was found on this device.');
+    return;
+  }
+  garage=saved;
+  try{
+    localStorage.setItem(CAREER_KEY,JSON.stringify(garage));
+    sessionStorage.setItem('selectedRoute',garage.savedRoute);
+    sessionStorage.setItem('selectedBus',garage.activeBus);
+    location.reload();
+  }catch(error){
+    console.error('Game load failed:',error);
+    careerNotice('Load failed. Check that browser storage is enabled.');
+  }
+}
+function makeGaragePurchase(cost){
+  if(garage.balance<cost){
+    careerNotice('Not enough career funds. Finish more shifts to earn money.');
+    return false;
+  }
+  garage.balance-=cost;
+  return true;
+}
+let garage=readGarageStorage(CAREER_KEY)||defaultGarage();
+try{
+  if(!localStorage.getItem(CAREER_KEY)){
+    const previousBus=sessionStorage.getItem('selectedBus');
+    if(garage.ownedBuses.includes(previousBus))garage.activeBus=previousBus;
+  }
+}catch(error){
+  console.warn('Previous vehicle selection could not be read:',error);
+}
 const busSelect=document.getElementById('busSelect');
 const rememberedBus=sessionStorage.getItem('selectedBus');
-let ACTIVE_BUS_MODEL=BUS_MODELS[rememberedBus]?rememberedBus:'crownline';
+let ACTIVE_BUS_MODEL=garage.ownedBuses.includes(garage.activeBus)
+  ?garage.activeBus:(garage.ownedBuses.includes(rememberedBus)?rememberedBus:'crownline');
+garage.activeBus=ACTIVE_BUS_MODEL;
 if(busSelect){
+  [...busSelect.options].forEach(option=>{
+    option.disabled=!garage.ownedBuses.includes(option.value);
+  });
   busSelect.value=ACTIVE_BUS_MODEL;
   busSelect.addEventListener('change',()=>{
+    if(!garage.ownedBuses.includes(busSelect.value)){
+      busSelect.value=ACTIVE_BUS_MODEL;
+      toast('Purchase this coach in the Bus Shop first.',2200);
+      return;
+    }
+    garage.activeBus=busSelect.value;
+    persistGarage();
     sessionStorage.setItem('selectedBus',busSelect.value);
     location.reload();
   });
 }
+CFG.capacity+=garage.upgrades.seats*8;
 const busModel=BUS_MODELS[ACTIVE_BUS_MODEL];
 document.getElementById('busDescription').textContent=busModel.detail;
 const bus=new THREE.Group();scene.add(bus);
@@ -1591,6 +1844,13 @@ const rearBumper=frontBumper.clone();rearBumper.position.z=-L/2-0.06;shell.add(r
 
 const roof=new THREE.Mesh(new THREE.BoxGeometry(W+0.06,0.34,L+0.05),busTrim);
 roof.position.y=3.12;roof.castShadow=true;shell.add(roof);
+if(garage.accessories.roofLights){
+  const lightBar=new THREE.Mesh(
+    new THREE.BoxGeometry(W-0.55,0.09,0.18),
+    new THREE.MeshStandardMaterial({color:0x67e8f9,emissive:0x0891b2,emissiveIntensity:1.3,metalness:.35,roughness:.22})
+  );
+  lightBar.position.set(0,3.35,L/2-0.15);shell.add(lightBar);
+}
 const roofStrip=new THREE.Mesh(new THREE.BoxGeometry(W-0.35,0.025,L-1.2),new THREE.MeshStandardMaterial({color:0x78b9bf,roughness:.42,metalness:.25}));
 roofStrip.position.set(0,3.3,-0.2);shell.add(roofStrip);
 roofStrip.material.color.setHex(busModel.accent);
@@ -2386,7 +2646,7 @@ for(let i=0;i<3;i++){
 
 // --- wheels ---
 const rubber=new THREE.MeshStandardMaterial({color:0x111827,roughness:.95});
-const hubMat=new THREE.MeshStandardMaterial({color:busModel.hub,metalness:.78,roughness:.24});
+const hubMat=new THREE.MeshStandardMaterial({color:garage.accessories.wheelRims?0x67e8f9:busModel.hub,metalness:.78,roughness:.24});
 function wheelMesh(r,w){
   const g=new THREE.Group();
   const tireGeo=new THREE.CylinderGeometry(r,r,w,32);
@@ -2425,7 +2685,7 @@ function wheelMesh(r,w){
   // Enhanced rim with multi-part design
   const rimExternal = new THREE.Mesh(
     new THREE.CylinderGeometry(r*0.58,r*0.58,w+0.03,32),
-    new THREE.MeshStandardMaterial({color:busModel.hub,metalness:.84,roughness:.18})
+    new THREE.MeshStandardMaterial({color:garage.accessories.wheelRims?0x67e8f9:busModel.hub,metalness:.84,roughness:.18})
   );
   rimExternal.rotation.z=Math.PI/2;g.add(rimExternal);
   
@@ -3677,6 +3937,85 @@ $('btnManifest').addEventListener('click',toggleManifest);
 $('btnCloseManifest').addEventListener('click',toggleManifest);
 $('btnEndShift').addEventListener('click',()=>{if(S.shiftRunning)endShift(true);});
 $('btnRestart').addEventListener('click',()=>{$('resultsOverlay').classList.add('hidden');startShift();});
+$('btnOpenGarage').addEventListener('click',openGarage);
+$('btnResultsShop').addEventListener('click',openGarage);
+$('btnGarageClose').addEventListener('click',closeGarage);
+$('btnGarageSave').addEventListener('click',saveGame);
+$('btnGarageLoad').addEventListener('click',loadGame);
+$('btnSaveGame').addEventListener('click',saveGame);
+$('btnResultsSave').addEventListener('click',saveGame);
+$('btnLoadGame').addEventListener('click',loadGame);
+$('btnResultsDepot').addEventListener('click',()=>{
+  $('resultsOverlay').classList.add('hidden');
+  $('startOverlay').classList.remove('hidden');
+  updateCareerBalance();
+});
+['garageVehicleList','garageUpgradeList','garageAccessoryList'].forEach(listId=>{
+  $(listId).addEventListener('click',event=>{
+    const button=event.target.closest('[data-garage-action]');
+    if(!button||button.disabled)return;
+    const {garageAction,id}=button.dataset;
+    if(garageAction==='select-bus'){
+      const previousBus=garage.activeBus;
+      garage.activeBus=id;
+      ACTIVE_BUS_MODEL=id;
+      sessionStorage.setItem('selectedBus',id);
+      if(persistGarage())location.reload();
+      else{
+        garage.activeBus=previousBus;
+        ACTIVE_BUS_MODEL=previousBus;
+        sessionStorage.setItem('selectedBus',previousBus);
+        renderGarage();
+      }
+      return;
+    }
+    if(garageAction==='buy-bus'){
+      const model=BUS_MODELS[id];
+      if(!model||garage.ownedBuses.includes(id)||!makeGaragePurchase(model.price))return;
+      const previousBalance=garage.balance+model.price;
+      const previousBus=garage.activeBus;
+      garage.ownedBuses.push(id);
+      garage.activeBus=id;
+      ACTIVE_BUS_MODEL=id;
+      sessionStorage.setItem('selectedBus',id);
+      if(persistGarage())location.reload();
+      else{
+        garage.balance=previousBalance;
+        garage.ownedBuses=garage.ownedBuses.filter(busId=>busId!==id);
+        garage.activeBus=previousBus;
+        ACTIVE_BUS_MODEL=previousBus;
+        sessionStorage.setItem('selectedBus',previousBus);
+        renderGarage();
+      }
+      return;
+    }
+    if(garageAction==='buy-upgrade'){
+      const item=UPGRADE_DEFS[id],level=garage.upgrades[id];
+      if(!item||level>=item.max)return;
+      const price=Math.round(item.cost*Math.pow(1.65,level));
+      if(!makeGaragePurchase(price))return;
+      garage.upgrades[id]++;
+      if(persistGarage())location.reload();
+      else{
+        garage.balance+=price;
+        garage.upgrades[id]=level;
+        renderGarage();
+      }
+      return;
+    }
+    if(garageAction==='buy-accessory'){
+      const item=ACCESSORY_DEFS[id];
+      if(!item||garage.accessories[id]||!makeGaragePurchase(item.cost))return;
+      garage.accessories[id]=true;
+      if(persistGarage())location.reload();
+      else{
+        garage.balance+=item.cost;
+        garage.accessories[id]=false;
+        renderGarage();
+      }
+    }
+  });
+});
 $('btnStartGame').addEventListener('click',()=>{
   audio.init();audio.resume();
   $('startOverlay').classList.add('hidden');
@@ -4663,14 +5002,15 @@ function updateDriving(dt){
   if(S.gear==='D'){
     if(throttle){
       const driveAccel=11.5/mass*(1-Math.max(0,S.speed)/S.maxSpeed*0.82);
-      S.speed=S.speed<0?Math.min(0,S.speed+driveAccel*dt):S.speed+driveAccel*dt;
+      const upgradedAccel=driveAccel*(1+garage.upgrades.motor*0.12);
+      S.speed=S.speed<0?Math.min(0,S.speed+upgradedAccel*dt):S.speed+upgradedAccel*dt;
     }else{
       S.speed+=S.speed>0?-Math.min(S.speed,coastDrag*dt):Math.min(-S.speed,coastDrag*dt);
     }
     if(S.speed>S.maxSpeed)S.speed=S.maxSpeed;
   }else if(S.gear==='R'){
     if(throttle){
-      const reverseAccel=6.2/mass;
+      const reverseAccel=6.2/mass*(1+garage.upgrades.motor*0.12);
       S.speed=S.speed>0?Math.max(0,S.speed-reverseAccel*dt):S.speed-reverseAccel*dt;
       S.speed=Math.max(-S.revMax,S.speed);
     }else{
@@ -4734,7 +5074,7 @@ function updateDriving(dt){
     const travelMeters=Math.abs(v)*dt;
     S.odo=(S.odo||0)+travelMeters;
     if(ROUTES[CURRENT_ROUTE].longDistance){
-      S.fuel=Math.max(0,S.fuel-travelMeters/55);
+      S.fuel=Math.max(0,S.fuel-travelMeters/(55*(1+garage.upgrades.battery*0.18)));
       if(S.fuel<=15&&!S.fuelWarn){
         S.fuelWarn=true;toast('Low fuel — stop at the next fuel plaza',2600);
       }
@@ -5066,6 +5406,7 @@ function readBest(){
   try{return JSON.parse(localStorage.getItem('bus12best')||'null');}catch(e){return null;}
 }
 function endShift(manual){
+  if(!S.shiftRunning)return;
   S.shiftRunning=false;
   S.driver.active=false;
   updateDriverHUD();
@@ -5073,6 +5414,9 @@ function endShift(manual){
   const onTimePct=S.stopsServiced?Math.round((S.punctualStops||0)/S.stopsServiced*100):100;
   const moodPct=S.moodCount?Math.round(S.moodSum/S.moodCount*100):100;
   const net=S.cash-S.fines;
+  const careerEarnings=Math.max(0,net);
+  garage.balance+=careerEarnings;
+  persistGarage();
   const km=Math.round(S.odo||0);
   const perKm=km>5?(net/km*100).toFixed(0):'-';
   let score=onTimePct*0.32+S.comfort*0.28+moodPct*0.2+clamp(net/45,0,100)*0.2;
@@ -5103,6 +5447,7 @@ function endShift(manual){
   $('resStats').innerHTML=rows.map(r=>`<div class="flex justify-between border-b border-slate-800 pb-1"><span class="text-slate-400">${r[0]}</span><span class="mono-font">${r[1]}</span></div>`).join('')
     +(isBest?'<div class="text-center text-amber-300 font-black text-xs mt-2">★ NEW PERSONAL BEST ★</div>':'');
   $('resultsOverlay').classList.remove('hidden');
+  renderGarage();
   announce(manual?'Shift ended early.':'End of service. All buses back to depot.');
 }
 

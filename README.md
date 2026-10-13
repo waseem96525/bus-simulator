@@ -45,6 +45,16 @@ On touch devices: drag the wheel or use the ◀▶ buttons, and hold the on-scre
 - **Fines** — speeding (50 km/h limit), collisions, harsh braking, red-light violations
 - Grade **S → D** at 19:00, plus a personal best saved in `localStorage`
 
+## Career garage and saves
+
+- Net earnings from completed shifts are added to the persistent career balance.
+- Open **Bus Shop** between shifts to buy the Metroline Cityrunner or Volta E-Liner,
+  upgrade acceleration, highway range and passenger capacity, or fit LED roof lights
+  and premium alloy rims.
+- Career funds and purchases are saved automatically in this browser. Use **Save Game**
+  and **Load Game** to manage a local save containing your balance, fleet, upgrades,
+  accessories and selected route/coach. Saves are local to the current browser and device.
+
 ## Notable systems
 
 - Automatic day/night cycle driven by the shift clock (07:00 → 19:00) with a gradient sky,
