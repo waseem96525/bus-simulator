@@ -900,6 +900,47 @@ mergeInto(edgeG,edgeMat,false);
 const highwayCenterX=-175;
 const highwayStartZ=265,highwayEndZ=1300;
 const highwayLength=highwayEndZ-highwayStartZ;
+const speedBumps=[];
+const speedBumpTex=makeCanvasTex((ctx,w,h)=>{
+  ctx.fillStyle='#eab308';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#17212b';
+  for(let x=-h;x<w+h;x+=46){
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+24,0);ctx.lineTo(x-h+24,h);ctx.lineTo(x-h,h);ctx.closePath();ctx.fill();
+  }
+},256,64);
+speedBumpTex.wrapS=speedBumpTex.wrapT=THREE.RepeatWrapping;
+function addSpeedBump(x,z,heading,width=24){
+  const length=1.25,rise=0.16,nx=24,nz=12;
+  const vertices=[],uvs=[],indices=[];
+  for(let j=0;j<=nz;j++){
+    const along=-length/2+length*j/nz;
+    const profile=Math.pow(Math.cos(Math.abs(along)/length*Math.PI),2);
+    for(let i=0;i<=nx;i++){
+      const across=-width/2+width*i/nx;
+      vertices.push(across,0.032+rise*profile,along);
+      uvs.push(i/nx*5,j/nz);
+    }
+  }
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){
+    const a=j*(nx+1)+i,b=a+nx+1;
+    indices.push(a,b,a+1,b,b+1,a+1);
+  }
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+  geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
+  geometry.setIndex(indices);geometry.computeVertexNormals();
+  const material=new THREE.MeshStandardMaterial({map:speedBumpTex,roughness:.82,metalness:.04,side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(geometry,material);
+  mesh.position.set(x,0,z);mesh.rotation.y=heading;mesh.receiveShadow=true;mesh.castShadow=true;
+  scene.add(mesh);
+  speedBumps.push({position:new THREE.Vector3(x,0,z),heading,width,length,rise});
+}
+// Low-profile rubber humps make suspension movement testable on both route legs.
+addSpeedBump(0,30,0);
+addSpeedBump(0,120,0);
+addSpeedBump(-180,-55,0);
+addSpeedBump(-180,140,0);
+for(const z of [360,520,720,960,1180])addSpeedBump(highwayCenterX,z,0,30);
 const countryRoadMat=new THREE.MeshStandardMaterial({map:asphaltTex,roughness:.68,metalness:.02});
 const countryRoad=new THREE.Mesh(new THREE.PlaneGeometry(30,highwayLength),countryRoadMat);
 countryRoad.rotation.x=-Math.PI/2;
@@ -1413,13 +1454,18 @@ frontMask.position.set(0,1.16,L/2+0.08);shell.add(frontMask);
 const winY=2.12, winH=1.55;
 function sideWindows(sign){
   const zs=sign>0?[-3.75,-2.05,-0.35,1.35]:[-3.95,-2.25,-0.55,1.15,2.85];
-  const backing=new THREE.Mesh(new THREE.BoxGeometry(0.045,winH,L-0.9),busDark);
-  backing.position.set(sign*(W/2-0.045),winY,-0.05);shell.add(backing);
-  const windowRailMat=new THREE.MeshStandardMaterial({color:0x233744,roughness:.42,metalness:.48});
-  [-1,1].forEach(edge=>{
-    const rail=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.055,L-0.82),windowRailMat);
-    rail.position.set(sign*(W/2+0.045),winY+edge*(winH/2),-0.05);shell.add(rail);
+  const solidSegments=sign>0
+    ?[[-1.36,7.48],[4.41,1.18]]
+    :[[-0.05,L-0.9]];
+  solidSegments.forEach(([z,length])=>{
+    const backing=new THREE.Mesh(new THREE.BoxGeometry(0.045,winH,length),busDark);
+    backing.position.set(sign*(W/2-0.045),winY,z);shell.add(backing);
   });
+  const windowRailMat=new THREE.MeshStandardMaterial({color:0x233744,roughness:.42,metalness:.48});
+  solidSegments.forEach(([z,length])=>[-1,1].forEach(edge=>{
+    const rail=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.055,length+0.08),windowRailMat);
+    rail.position.set(sign*(W/2+0.045),winY+edge*(winH/2),z);shell.add(rail);
+  }));
   zs.forEach(z=>{
     const m=new THREE.Mesh(new THREE.BoxGeometry(0.075,winH,1.55),glassTint);
     m.position.set(sign*(W/2+0.025),winY,z);shell.add(m);
@@ -1940,16 +1986,50 @@ shell.add(driver.group);
 const doorFrame=new THREE.Group();
 doorFrame.position.set(W/2-0.06,0,3.1);
 shell.add(doorFrame);
-const doorLeafMat=new THREE.MeshPhysicalMaterial({color:0x18364a,roughness:.16,metalness:.22,transparent:true,opacity:.62,transmission:.08,clearcoat:.55,clearcoatRoughness:.2});
-const doorL=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.85,0.62),doorLeafMat);
-const doorR=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.85,0.62),doorLeafMat);
-doorL.position.set(0,1.95,-0.34);doorR.position.set(0,1.95,0.34);
-doorFrame.add(doorL);doorFrame.add(doorR);
-const doorSurround=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.95,1.4),busPaint);
-doorSurround.position.set(0.02,1.95,0);shell.add(doorSurround);
-const doorHandleL=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.12,0.02),new THREE.MeshStandardMaterial({color:0xdbeafe,metalness:.85,roughness:.25}));
-doorHandleL.position.set(0.06,1.9,-0.12);doorFrame.add(doorHandleL);
-const doorHandleR=doorHandleL.clone();doorHandleR.position.z=0.12;doorFrame.add(doorHandleR);
+const doorFrameMat=new THREE.MeshStandardMaterial({color:0x253744,roughness:.38,metalness:.52});
+const doorJambMat=new THREE.MeshPhysicalMaterial({color:0x8bcbd0,roughness:.3,metalness:.26,clearcoat:.45});
+function doorFramePart(width,height,depth,x,y,z,material){
+  const part=new THREE.Mesh(new THREE.BoxGeometry(width,height,depth),material);
+  part.position.set(x,y,z);part.castShadow=true;part.receiveShadow=true;doorFrame.add(part);
+}
+// Keep only the doorway's narrow structural rails so the entrance is not hidden by a solid body panel.
+for(const z of [-0.68,0.68])doorFramePart(0.14,1.96,0.13,0.045,1.96,z,doorJambMat);
+for(const y of [1.03,2.89])doorFramePart(0.14,0.12,1.42,0.045,y,0,doorJambMat);
+const doorSealMat=new THREE.MeshStandardMaterial({color:0x111c25,roughness:.9});
+for(const z of [-0.57,0.57])doorFramePart(0.06,1.72,0.045,0.084,1.96,z,doorSealMat);
+const doorGlassMat=new THREE.MeshPhysicalMaterial({
+  color:0x9bc7d4,roughness:.12,metalness:.08,transparent:true,opacity:.48,
+  transmission:.16,clearcoat:.7,clearcoatRoughness:.16,side:THREE.DoubleSide
+});
+const doorRailMat=new THREE.MeshStandardMaterial({color:0xd2e0e0,roughness:.3,metalness:.74});
+const doorHandleMat=new THREE.MeshStandardMaterial({color:0xf1f5f9,metalness:.86,roughness:.22});
+function makeSlidingDoor(sign){
+  const leaf=new THREE.Group();
+  leaf.position.set(0.035,1.96,sign*0.32);
+  const glass=new THREE.Mesh(new THREE.BoxGeometry(0.045,1.66,0.58),doorGlassMat);
+  glass.position.x=0.025;glass.castShadow=true;leaf.add(glass);
+  for(const z of [-0.29,0.29]){
+    const stile=new THREE.Mesh(new THREE.BoxGeometry(0.075,1.76,0.045),doorRailMat);
+    stile.position.set(0.055,0,z);leaf.add(stile);
+  }
+  for(const y of [-0.86,0.86]){
+    const rail=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.045,0.62),doorRailMat);
+    rail.position.set(0.055,y,0);leaf.add(rail);
+  }
+  const handle=new THREE.Mesh(new THREE.BoxGeometry(0.035,0.16,0.025),doorHandleMat);
+  handle.position.set(0.105,0,-sign*0.19);leaf.add(handle);
+  doorFrame.add(leaf);
+  return leaf;
+}
+const doorL=makeSlidingDoor(-1);
+const doorR=makeSlidingDoor(1);
+// Stair treads are visible through the open entrance and help show the boarding step.
+const entryStepMat=new THREE.MeshStandardMaterial({color:0x34424b,roughness:.88,metalness:.08});
+for(let i=0;i<3;i++){
+  const step=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.09,0.82-i*0.12),entryStepMat);
+  step.position.set(0.78,0.42+i*0.25,3.12-i*0.08);
+  shell.add(step);
+}
 
 // --- wheels ---
 const rubber=new THREE.MeshStandardMaterial({color:0x111827,roughness:.95});
@@ -1962,23 +2042,31 @@ function wheelMesh(r,w){
   // Enhanced tire with realistic tread pattern
   const tire=new THREE.Mesh(tireGeo,tireMat);tire.rotation.z=Math.PI/2;tire.castShadow=true;g.add(tire);
   
-  // Add tire tread grooves - front/rear differentiation
-  const treadCount = r > 0.6 ? 24 : 16;
-  for(let i = 0; i < treadCount; i++){
-    const angle = (i / treadCount) * Math.PI * 2;
-    const treadLen = r > 0.6 ? 0.18 : 0.12;
-    const treadWidth = r > 0.6 ? 0.06 : 0.04;
-    
-    const treadPath = new THREE.Shape();
-    treadPath.moveTo(0, 0);
-    treadPath.lineTo(0, -treadLen);
-    
-    const treadGeom = new THREE.ShapeGeometry(treadPath);
-    treadGeom.scale(r - 0.05, treadWidth);
-    const tread = new THREE.Mesh(treadGeom, tireMat);
-    tread.rotation.z = angle;
-    tread.position.y = -r + 0.02;
-    g.add(tread);
+  const treadRows=3,treadCount=r>0.6?32:24;
+  const treadBlocks=new THREE.InstancedMesh(
+    new THREE.BoxGeometry(w/(treadRows+0.5),0.035,Math.max(0.075,2*r*Math.sin(Math.PI/treadCount)*0.72)),
+    new THREE.MeshStandardMaterial({color:0x252a30,roughness:.98}),treadRows*treadCount
+  );
+  const treadDummy=new THREE.Object3D();
+  let treadIndex=0;
+  for(let row=0;row<treadRows;row++){
+    const axleX=(row-(treadRows-1)/2)*w/treadRows;
+    for(let i=0;i<treadCount;i++){
+      const angle=(i+(row%2)*0.5)*Math.PI*2/treadCount;
+      treadDummy.position.set(axleX,Math.cos(angle)*(r-0.006),Math.sin(angle)*(r-0.006));
+      treadDummy.rotation.set(angle,0,0);
+      treadDummy.updateMatrix();
+      treadBlocks.setMatrixAt(treadIndex++,treadDummy.matrix);
+    }
+  }
+  treadBlocks.castShadow=true;g.add(treadBlocks);
+
+  const sidewallMat=new THREE.MeshStandardMaterial({color:0x171b20,roughness:.92});
+  for(const side of [-1,1]){
+    const shoulder=new THREE.Mesh(new THREE.TorusGeometry(r*.92,.018,6,32),sidewallMat);
+    shoulder.rotation.y=Math.PI/2;shoulder.position.x=side*w*.38;g.add(shoulder);
+    const bead=new THREE.Mesh(new THREE.TorusGeometry(r*.58,.012,5,28),sidewallMat);
+    bead.rotation.y=Math.PI/2;bead.position.x=side*w*.39;g.add(bead);
   }
   
   // Enhanced rim with multi-part design
@@ -3769,6 +3857,24 @@ function updateRideSpring(positionKey,velocityKey,target,dt,frequency,damping=0.
   rideState[positionKey]+=rideState[velocityKey]*dt;
 }
 
+function sampleSpeedBumpLift(axleOffset){
+  const forward=headingVec(S.heading);
+  const wheelX=bus.position.x+forward.x*axleOffset;
+  const wheelZ=bus.position.z+forward.z*axleOffset;
+  let lift=0;
+  for(const bump of speedBumps){
+    const bumpForward=headingVec(bump.heading),bumpRight=rightVec(bump.heading);
+    const dx=wheelX-bump.position.x,dz=wheelZ-bump.position.z;
+    const along=dx*bumpForward.x+dz*bumpForward.z;
+    const across=dx*bumpRight.x+dz*bumpRight.z;
+    if(Math.abs(across)>bump.width/2-0.25||Math.abs(along)>bump.length/2)continue;
+    if(Math.abs(forward.x*bumpForward.x+forward.z*bumpForward.z)<0.88)continue;
+    const profile=Math.pow(Math.cos(Math.abs(along)/bump.length*Math.PI),2);
+    lift=Math.max(lift,bump.rise*profile);
+  }
+  return lift;
+}
+
 function updateDriving(dt){
   // steering: digital keys / touch buttons ALWAYS work; the wheel adds analog trim
   let steerInput=0;
@@ -3867,8 +3973,10 @@ function updateDriving(dt){
     spinWheels.forEach(w=>w.rotation.x+=roll);
   }
   const roadTexture=Math.sin(bus.position.x*0.14+bus.position.z*0.09)*Math.cos(bus.position.z*0.12-bus.position.x*0.05);
-  const roadInput=roadTexture*0.018*speedFraction;
-  const targetPitch=clamp(-longitudinalAcceleration*0.004,-0.035,0.045);
+  const frontBumpLift=sampleSpeedBumpLift(3.4);
+  const rearBumpLift=Math.max(sampleSpeedBumpLift(-2.9),sampleSpeedBumpLift(-4.25));
+  const roadInput=roadTexture*0.018*speedFraction+(frontBumpLift+rearBumpLift)*0.5;
+  const targetPitch=clamp(-longitudinalAcceleration*0.004+(frontBumpLift-rearBumpLift)*0.45,-0.09,0.09);
   const lateralAcceleration=v*yawRate;
   const targetRoll=clamp(-Math.atan(lateralAcceleration/9.81)*0.65,-0.12,0.12);
   updateRideSpring('height','heightVelocity',roadInput,dt,1.45);
@@ -3881,7 +3989,8 @@ function updateDriving(dt){
 
   // doors animation
   S.doorP=lerp(S.doorP,S.doorsOpen?1:0,1-Math.pow(0.002,dt));
-  doorL.position.x=-S.doorP*0.42;doorR.position.x=-S.doorP*0.42;
+  doorL.position.z=-0.32-S.doorP*0.57;
+  doorR.position.z=0.32+S.doorP*0.57;
 
   // wipers + reversing lamps
   if(rain.visible){
