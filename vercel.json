@@ -5,6 +5,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "tailwind.css",
+      "use": "@vercel/static"
+    },
+    {
       "src": "manifest.json",
       "use": "@vercel/static"
     },
@@ -23,7 +27,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!manifest\\.json|sw\\.js|.*\\.js|.*\\.json|.*\\.png).*)",
+      "source": "/((?!manifest\\.json|sw\\.js|.*\\.js|.*\\.css|.*\\.json|.*\\.png).*)",
       "destination": "/index.html"
     }
   ]

@@ -1,10 +1,12 @@
 // Service Worker for Bus Simulator PWA
-const CACHE_NAME='bus-simulator-v3';
+const CACHE_NAME='bus-simulator-v4';
+const CDN_CACHE='bus-simulator-cdn-v1';
+const CDN_HOSTS=['cdnjs.cloudflare.com','cdn.jsdelivr.net','fonts.googleapis.com','fonts.gstatic.com'];
 const urlsToCache=[
   '/',
   '/index.html',
+  '/tailwind.css',
   '/manifest.json',
-  // Add other static assets if needed
 ];
 
 self.addEventListener('install',event=>{
@@ -21,7 +23,7 @@ self.addEventListener('activate',event=>{
     caches.keys().then(cacheNames=>{
       return Promise.all(
         cacheNames.map(cacheName=>{
-          if(cacheName!==CACHE_NAME){
+          if(cacheName!==CACHE_NAME&&cacheName!==CDN_CACHE){
             return caches.delete(cacheName);
           }
         })
@@ -32,7 +34,24 @@ self.addEventListener('activate',event=>{
 });
 
 self.addEventListener('fetch',event=>{
-  if(event.request.method!=='GET'||new URL(event.request.url).origin!==self.location.origin)return;
+  if(event.request.method!=='GET')return;
+  const url=new URL(event.request.url);
+
+  // Versioned CDN libraries and fonts: serve from cache first so repeat loads skip the network.
+  if(CDN_HOSTS.includes(url.hostname)){
+    event.respondWith(
+      caches.open(CDN_CACHE).then(cache=>cache.match(event.request).then(cached=>{
+        const network=fetch(event.request).then(response=>{
+          if(response.ok||response.type==='opaque')cache.put(event.request,response.clone());
+          return response;
+        });
+        return cached||network;
+      }))
+    );
+    return;
+  }
+
+  if(url.origin!==self.location.origin)return;
   event.respondWith(
     fetch(event.request,{cache:'no-cache'}).then(response=>{
       if(response.ok){

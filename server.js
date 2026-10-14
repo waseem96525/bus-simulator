@@ -1,11 +1,13 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 const mimeLib = require('mime');
 const mime = mimeLib.default || mimeLib;
 
 const PORT = 8000;
 const DIR = process.cwd();
+const COMPRESSIBLE = /^(text\/|application\/(javascript|json|manifest\+json)|image\/svg)/;
 
 function getMimeType(filePath) {
   const ext = path.extname(filePath).toLowerCase();
@@ -34,7 +36,8 @@ const server = http.createServer((req, res) => {
     });
     return;
   }
-  let filePath = path.join(DIR, req.url === '/' ? 'index.html' : req.url);
+  const urlPath = decodeURIComponent(req.url.split('?')[0].split('#')[0]);
+  let filePath = path.join(DIR, urlPath === '/' ? 'index.html' : urlPath);
 
   // Security: prevent directory traversal
   if (filePath.includes('..')) {
@@ -57,6 +60,12 @@ const server = http.createServer((req, res) => {
 
     const contentType = getMimeType(filePath);
     res.setHeader('Content-Type', contentType);
+    if ((req.headers['accept-encoding'] || '').includes('gzip') && COMPRESSIBLE.test(contentType)) {
+      res.setHeader('Content-Encoding', 'gzip');
+      res.setHeader('Vary', 'Accept-Encoding');
+      res.end(zlib.gzipSync(content));
+      return;
+    }
     res.end(content, 'utf-8');
   });
 });

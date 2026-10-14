@@ -9,17 +9,28 @@
 <link rel="icon" type="image/png" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <title>Metro Transit 3D — Bus Driver Simulator</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Share+Tech+Mono&family=Inter:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/Pass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script>
+// Bloom/postprocessing is only needed for HIGH graphics, so it is fetched on demand.
+window.loadPostFx=function(){
+  if(window.__postFxPromise)return window.__postFxPromise;
+  var base='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/';
+  var files=['postprocessing/EffectComposer.js','postprocessing/RenderPass.js','postprocessing/ShaderPass.js','postprocessing/Pass.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/UnrealBloomPass.js'];
+  window.__postFxPromise=Promise.all(files.map(function(f){
+    return new Promise(function(resolve){
+      var s=document.createElement('script');
+      s.src=base+f;s.async=false;s.onload=s.onerror=function(){resolve();};
+      document.head.appendChild(s);
+    });
+  }));
+  return window.__postFxPromise;
+};
+</script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Share+Tech+Mono&family=Inter:wght@400;600;700&display=swap');
   *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;box-sizing:border-box}
   body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#020617;font-family:'Inter',sans-serif;touch-action:none}
   #gameContainer{width:100vw;height:100vh;position:absolute;inset:0;overflow:hidden}
@@ -67,6 +78,13 @@
   body.fb #virtualWheel{border-radius:50%}
   #bootError{position:fixed;inset:0;z-index:999;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.94);padding:24px}
   #bootError.show{display:flex}
+  #loadingSplash{position:fixed;inset:0;z-index:998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#020617;color:#e2e8f0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  #loadingSplash .ls-bus{font-size:56px}
+  #loadingSplash .ls-title{font-size:20px;font-weight:800;letter-spacing:.04em}
+  #loadingSplash .ls-text{font-size:12px;color:#94a3b8}
+  #loadingSplash .ls-bar{width:160px;height:4px;border-radius:2px;background:#1e293b;overflow:hidden}
+  #loadingSplash .ls-bar i{display:block;width:40%;height:100%;background:#10b981;animation:lsSlide 1s infinite ease-in-out}
+  @keyframes lsSlide{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
   /* mobile responsiveness */
   @media (max-width: 767px){
     #gameContainer{width:100vw;height:100vh;height:100dvh;max-width:100vw;max-height:100vh;max-height:100dvh}
@@ -252,6 +270,7 @@
     #uiOverlay > :first-child{display:none}
   }
 </style>
+<link id="twCss" rel="stylesheet" href="/tailwind.css">
 </head>
 <body class="w-screen h-screen relative select-none">
 <div id="gameContainer"></div>
@@ -565,7 +584,8 @@
   </div>
 </div>
 
-<script>
+<div id="loadingSplash"><div class="ls-bus">🚌</div><div class="ls-title">Metro Transit 3D</div><div class="ls-text">Building the city…</div><div class="ls-bar"><i></i></div></div>
+<script type="text/plain" id="mainGame">
 /* =========================================================================
    0. HELPERS
    ========================================================================= */
@@ -645,7 +665,7 @@ let composerEnabled = false;
 let configuredShadowSize=0;
 const GRAPHICS_LEVELS=['high','balanced','performance'];
 const GRAPHICS_LABELS={high:'✨ HIGH',balanced:'◈ BALANCED',performance:'⚡ FAST'};
-let graphicsQuality='high';
+let graphicsQuality=isSmallScreen?'balanced':'high';
 try{
   const savedQuality=localStorage.getItem('bus-simulator-graphics');
   if(GRAPHICS_LEVELS.includes(savedQuality))graphicsQuality=savedQuality;
@@ -654,7 +674,12 @@ try{
 }
 function makeComposer(){
   if(composer){composerEnabled=true;return;}
-  if(typeof THREE.EffectComposer==='undefined')return;
+  if(typeof THREE.EffectComposer==='undefined'){
+    if(window.loadPostFx)window.loadPostFx().then(()=>{
+      if(graphicsQuality==='high'&&typeof THREE.EffectComposer!=='undefined')applyGraphicsQuality(false);
+    });
+    return;
+  }
   composer=new THREE.EffectComposer(renderer);
   composer.addPass(new THREE.RenderPass(scene,camera));
   bloomPass=new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.75,0.65,0.35);
@@ -5609,6 +5634,22 @@ refreshHUD();
 drawMap();
 animate();
 </script>
+<script>
+// Let the browser paint the splash first, then run the heavy scene build.
+(function(){
+  function run(){
+    try{
+      var s=document.createElement('script');
+      s.text=document.getElementById('mainGame').textContent;
+      document.body.appendChild(s);
+    }finally{
+      var sp=document.getElementById('loadingSplash');
+      if(sp)sp.remove();
+    }
+  }
+  requestAnimationFrame(function(){setTimeout(run,30);});
+})();
+</script>
 
 <!-- ======================= BOOT DIAGNOSTICS =======================
      Turns a silent black page into a readable error, and keeps the
@@ -5627,7 +5668,8 @@ animate();
   });
   function check(){
     // 1. styling
-    if(!window.tailwind)document.body.classList.add('fb');
+    var tw=document.getElementById('twCss');
+    if(!tw||!tw.sheet)document.body.classList.add('fb');
     // 2. 3D engine
     if(!window.THREE){
       fail('The 3D engine (three.js) could not be loaded from cdnjs.cloudflare.com.',

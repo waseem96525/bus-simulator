@@ -79,17 +79,25 @@ Then push and deploy.
 
 ## Requirements
 
-The page loads two CDN scripts at runtime, so it needs internet access on first load:
+The page loads these CDN scripts at runtime, so it needs internet access on first load (they are cached afterwards by the service worker):
 
-- `https://cdn.tailwindcss.com` — interface styling (a plain-CSS fallback is built in)
 - `https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js` — the 3D engine
+- `https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/...` — bloom post-processing, loaded only on HIGH graphics
 
-If either is blocked, the page shows a readable error instead of a blank screen. WebGL
+Phones default to BALANCED graphics (no shadows or bloom) for faster loading; change it with the graphics button.
+If the engine is blocked, the page shows a readable error instead of a blank screen. WebGL
 with hardware acceleration is required.
+
+Styling is precompiled into `tailwind.css`. After changing Tailwind classes in `index.html`, regenerate it with:
+
+```
+npx tailwindcss@3.4.17 -c <config with content: ['index.html']> -i <input with @tailwind base/components/utilities> -o tailwind.css --minify
+```
 
 ## Files
 
 | File | Purpose |
 |---|---|
 | `index.html` | The game — this is what Vercel serves |
+| `tailwind.css` | Precompiled Tailwind utility styles |
 | `3d_bus_simulator.html` | Working copy of the same file |
