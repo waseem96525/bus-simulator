@@ -32,8 +32,9 @@ window.loadPostFx=function(){
 </script>
 <style>
   *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;box-sizing:border-box}
-  body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#020617;font-family:'Inter',sans-serif;touch-action:none}
-  #gameContainer{width:100vw;height:100vh;position:absolute;inset:0;overflow:hidden}
+  body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#020617;  font-family:'Inter',sans-serif;touch-action:manipulation}
+    #gameContainer{width:100vw;height:100vh;position:absolute;inset:0;overflow:hidden;touch-action:none}
+    .hidescroll{touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .hud-font{font-family:'Chakra Petch',sans-serif}
   .mono-font{font-family:'Share Tech Mono',monospace}
   .glass-panel{background:rgba(15,23,42,.84);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14);box-shadow:0 8px 30px rgba(0,0,0,.55)}
